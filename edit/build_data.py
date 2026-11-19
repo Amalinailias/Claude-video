@@ -8,7 +8,7 @@ from timeline import build, HOOK  # noqa
 words_json, out_js = sys.argv[1], sys.argv[2]
 words = json.load(open(words_json))  # times relative to the cut (speech) timeline
 
-FIX = {13: 'perceraian', 43: 'perceraian,', 23: None, 24: 'dicakap', 48: 'perselisihan', 49: 'faham,', 58: 'terabai.', 65: 'tiga',
+FIX = {7: None, 36: 'Apa', 13: 'perceraian', 43: 'perceraian,', 23: None, 24: 'dicakap', 48: 'perselisihan', 49: 'faham,', 58: 'terabai.', 65: 'tiga',
        90: 'okay,', 167: 'benefits.', 219: 'Naja’a', 222: 'Ilias', 41: 'adalah,', 25: 'narsistik.'}
 
 # re-map word times: original-cut timeline -> source -> current EDL (removed words get t='')
@@ -55,7 +55,7 @@ for i, w in enumerate(words):
 W[24]['s'] = W[23]['s']
 
 CHUNKS = [(0, 3), (4, 6), (7, 10), (11, 13), (14, 17), (18, 19), (20, 22), (23, 25), (26, 30), (31, 34),
-          (35, 37), (38, 41), (42, 43), (44, 45), (46, 49), (50, 50), (51, 52), (53, 55), (56, 58),
+          (35, 41), (42, 43), (44, 45), (46, 49), (50, 50), (51, 52), (53, 55), (56, 58),
           (59, 61), (62, 64), (65, 66), (67, 70), (71, 74), (75, 78), (79, 82), (83, 83), (84, 85),
           (86, 88), (89, 90), (91, 94), (95, 97), (98, 99), (100, 102), (103, 105), (106, 109),
           (110, 112), (113, 115), (116, 118), (119, 121), (122, 125), (126, 129), (130, 131),

@@ -1,7 +1,7 @@
 # Edit decision list (TikTok/IG-safe cut): (clip, src_in, src_out, zoom, note)
 EDL = [
  (1, 4.60, 7.32,  1.00, "Let's spill the coffee, not the tea."),
- (1, 15.12, 16.52, 1.00, "Tapi apa yang I nak bincangkan adalah,"),
+ (1, 15.30, 16.52, 1.00, "Apa yang I nak bincangkan adalah,"),
  (1, 16.90, 18.68, 1.00, "selepas penceraian,"),
  (1, 21.00, 24.26, 1.12, "banyaklah berlaku rata-rata perselisihan faham, gaduh,"),
  (1, 26.16, 29.16, 1.22, "sehingga kan mengakibatkan anak-anak terabai."),
