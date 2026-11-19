@@ -86,7 +86,8 @@ class SegReader:
         self.p.stdout.close(); self.p.wait()
 
 
-hook_still = grab(segs[0]['src_in'])
+HOOK_SRC = 50.15   # smiling frame for the intro background
+hook_still = grab(HOOK_SRC)
 last = segs[-1]
 end_still = grab(last['src_out'] - 0.04)
 

@@ -5,21 +5,23 @@
   const HOOK = D.hook;
   add(`<div id="hook">
     <div id="hshade"></div>
-    <div class="glass notif" id="n1" style="top:300px">
+    <div id="hstack" class="abs" style="left:0;top:0;width:1080px;height:1920px;transform:scale(.84);transform-origin:540px 0">
+    <div class="glass notif" id="n1" style="top:220px">
       <div class="app" style="background:linear-gradient(135deg,#E08A99,#B9576A)">${RAW('ambulance')}</div>
       <div style="flex:1"><div class="meta"><span>Kemalangan</span><span>baru tadi</span></div><div class="msg">Hilang 1 ruas ibu jari kanan</div></div>
     </div>
-    <div class="glass notif" id="n2" style="top:478px">
+    <div class="glass notif" id="n2" style="top:392px">
       <div class="app" style="background:linear-gradient(135deg,#F3B061,#C9772E)">${RAW('circle-help')}</div>
       <div style="flex:1"><div class="meta"><span>Soalan</span><span>sekarang</span></div><div class="msg">Boleh claim ke?</div></div>
     </div>
-    <div class="glass" id="calc">
+    <div class="glass" id="calc" style="top:562px">
       <div class="kicker" style="justify-content:center"><span class="ic">${RAW('calculator')}</span>Kalkulator pampasan</div>
       <div class="eq"><span class="chip amber" id="cq1" style="font-size:42px">15%</span><span id="cqx">×</span><span class="chip" id="cq2" style="font-size:42px">RM100,000*</span><span id="cqe">=</span></div>
       <div id="calcres">RM0</div>
-      <div class="note" id="cqn">*Contoh jumlah perlindungan. Ikut polisi &amp; jadual manfaat sebenar.</div>
     </div>
-    <div class="glass" id="hban"><div class="t1">Tak perlu tunggu<br>hilang upaya <span class="s">100%<span class="strike" id="hstrike" style="left:-6px;right:-6px;top:48%"></span></span></div></div>
+    <div class="glass" id="hban" style="top:1330px"><div class="t1">Tak perlu tunggu<br>hilang upaya <span class="s">100%<span class="strike" id="hstrike" style="left:-6px;right:-6px;top:48%"></span></span></div></div>
+    </div>
+    <div id="hnote">*Contoh ilustrasi. Pampasan sebenar tertakluk pada rider,<br>jumlah perlindungan &amp; terma polisi.</div>
     <div id="hflash" class="abs" style="inset:0;background:radial-gradient(60% 40% at 50% 45%,rgba(255,236,200,.95),rgba(255,210,150,0) 70%)"></div>
     <div id="hblack" class="abs" style="inset:0;background:#000"></div>
   </div>`);
@@ -33,18 +35,19 @@
     $('hblack').style.opacity = (1 - E.outCubic(P(t, 0, 0.25))).toFixed(3);
     $('hflash').style.opacity = (0.5 * bell(P(t, 2.95, 0.35)) + 0.45 * bell(P(t, HOOK - 0.3, 0.4))).toFixed(3);
     const tOut = HOOK - 0.58;
-    ee($('n1'), t, 0.15, tOut, { dy: -70, sc: 0.06, blur: 12, din: 0.5 });
-    ee($('n2'), t, 0.8, tOut + 0.05, { dy: -70, sc: 0.06, blur: 12, din: 0.5 });
+    const dim = 1 - 0.3 * E.inOut(P(t, 1.4, 0.4));
+    if (ee($('n1'), t, 0.15, tOut, { dy: -70, sc: 0.06, blur: 12, din: 0.5 })) { $('n1').style.opacity = (parseFloat($('n1').style.opacity) * dim).toFixed(3); }
+    if (ee($('n2'), t, 0.8, tOut + 0.05, { dy: -70, sc: 0.06, blur: 12, din: 0.5 })) { $('n2').style.opacity = (parseFloat($('n2').style.opacity) * dim).toFixed(3); }
+    ee($('hnote'), t, 1.5, tOut + 0.2, { dy: 8, blur: 4, sc: 0 });
     ee($('calc'), t, 1.4, tOut + 0.1, { dy: 50, sc: 0.12, blur: 14, din: 0.55 });
     pop($('cq1'), t, 1.65, { from: 0.4 });
     ee($('cqx'), t, 1.78, 1e9, { dy: 0, blur: 6, sc: 0 });
     pop($('cq2'), t, 1.9, { from: 0.4 });
     ee($('cqe'), t, 2.05, 1e9, { dy: 0, blur: 6, sc: 0 });
     const k = E.outExpo(P(t, 2.15, 0.85));
-    $('calcres').textContent = 'RM' + fmt(Math.round(15000 * k / 10) * 10);
+    $('calcres').innerHTML = 'RM' + fmt(Math.round(15000 * k / 10) * 10) + '<span style="font-size:64px;vertical-align:top">*</span>';
     const b = 1 + 0.12 * bell(P(t, 2.95, 0.35));
     $('calcres').style.transform = `scale(${b.toFixed(4)})`;
-    ee($('cqn'), t, 2.3, 1e9, { dy: 8, blur: 4 });
     ee($('hban'), t, 3.25, tOut + 0.15, { dy: 40, sc: 0.1, blur: 12, din: 0.45 });
     const st = E.outExpo(P(t, 3.55, 0.4));
     if (show($('hstrike'), st > 0 ? 1 : 0)) $('hstrike').style.transform = `scaleX(${st.toFixed(4)})`;
@@ -183,6 +186,7 @@
         <div class="erow" id="er3"><div class="x">Tak perlu tunggu hilang upaya 100%</div><div class="ck" id="ec3">${IC('check')}</div></div>
       </div>
       <div style="display:flex;justify-content:center;margin-top:30px"><div class="chip amber" id="e3" style="font-size:36px">${IC('message-circle')}PM Naja’a · AIA Advisor</div></div>
+      <div class="foot" id="e4" style="text-align:center;margin-top:18px">Contoh jadual polisi AIA · Tertakluk pada terma &amp; syarat polisi</div>
     </div></div>`);
 
   const T = {};
@@ -305,5 +309,6 @@
         pop($('ec' + i), t, T.end + 0.6 + 0.22 * i, { from: 0.2 });
       });
       pop($('e3'), t, T.end + 1.45, { from: 0.6 });
+      ee($('e4'), t, T.end + 1.6, 1e9, { dy: 8, blur: 4 });
     }
   }

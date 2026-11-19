@@ -341,6 +341,79 @@ LIB.update({'notif': notif, 'notif2': lambda: notif(0.9, 1318.51, 1975.53), 'coi
             'glass_tap': glass_tap, 'bass_hit': bass_hit})
 
 
+def _clap_dry(bright=1.0):
+    n = int(0.22 * SR)
+    tt = np.arange(n) / SR
+    x = np.zeros(n)
+    for k in range(4):  # several micro-transients = one hand clap
+        off = int(rng.uniform(0, 0.012) * SR) if k else 0
+        burst = rng.standard_normal(n - off) * np.exp(-np.arange(n - off) / SR * rng.uniform(150, 260))
+        x[off:] += burst * (1 if k == 0 else rng.uniform(0.4, 0.8))
+    lo, hi = 800 * bright, 3600 * bright
+    x = signal.sosfilt(signal.butter(2, [lo, min(hi, 20000)], 'band', fs=SR, output='sos'), x)
+    return norm(x)
+
+
+def clap():
+    return reverb(stereo(_clap_dry(), rng.uniform(-0.15, 0.15)), decay=0.5, mix=0.22, bright=7000)
+
+
+def clap2():
+    out = np.zeros((int(0.8 * SR), 2))
+    for i, off in enumerate([0.0, 0.17]):
+        c = clap() * (0.85 if i == 0 else 1.0)
+        s = int(off * SR); e = min(len(out), s + len(c)); out[s:e] += c[: e - s]
+    return out / (np.max(np.abs(out)) + 1e-9) * 0.9
+
+
+def applause(d=1.8, n=90):
+    out = np.zeros((int((d + 0.6) * SR), 2))
+    for i in range(n):
+        tm = rng.uniform(0, d)
+        g = np.sin(np.pi * min(1, tm / d)) ** 0.6
+        c = stereo(_clap_dry(rng.uniform(0.8, 1.3)), rng.uniform(-0.8, 0.8)) * g * rng.uniform(0.3, 1.0)
+        s = int(tm * SR); e = min(len(out), s + len(c)); out[s:e] += c[: e - s]
+    out = reverb(out, decay=1.25, mix=0.35)
+    return out / (np.max(np.abs(out)) + 1e-9) * 0.8
+
+
+def shock(d=2.0):
+    """dramatic orchestral stab + timpani: the 'shocked!' moment"""
+    tt = t_axis(d)
+    notes = [36, 43, 48, 51, 54, 60]  # C2 G2 C3 Eb3 F#3 C4 (tense)
+    x = np.zeros(len(tt))
+    for m in notes:
+        f = 440 * 2 ** ((m - 69) / 12)
+        for det in (0.996, 1.0, 1.004):
+            x += signal.sawtooth(2 * np.pi * f * det * tt + rng.uniform(0, 6))
+    env = np.minimum(1, tt / 0.008) * (0.65 * np.exp(-tt * 5) + 0.35 * np.exp(-tt * 1.3))
+    lp_hi = signal.sosfilt(signal.butter(2, 3200, 'low', fs=SR, output='sos'), x)
+    lp_lo = signal.sosfilt(signal.butter(2, 900, 'low', fs=SR, output='sos'), x)
+    mixc = np.exp(-tt * 4)
+    brass = (lp_hi * mixc + lp_lo * (1 - mixc)) * env
+    timp = np.sin(2 * np.pi * np.cumsum(48 + 30 * np.exp(-tt * 20)) / SR) * np.exp(-tt * 3.2)
+    hit = band_sweep_noise(d, 3000, 400, bw=0.7) * np.exp(-tt * 14)
+    y = norm(brass) * 0.85 + norm(timp) * 0.7 + norm(hit) * 0.3
+    return reverb(stereo(norm(np.tanh(1.3 * y))), decay=2.4, mix=0.32, bright=6000)
+
+
+def scratch(d=0.42):
+    """vinyl record scratch: back-and-forth pitch sweep"""
+    tt = t_axis(d)
+    ph = np.where(tt < d * 0.45, tt / (d * 0.45), 1 - (tt - d * 0.45) / (d * 0.55))
+    rate = 0.2 + 2.2 * np.abs(np.gradient(np.sin(np.pi * ph))) * SR / 60
+    f = 180 + 900 * np.clip(rate / rate.max(), 0, 1)
+    tone = signal.sawtooth(2 * np.pi * np.cumsum(f) / SR) * 0.6
+    nz = rng.standard_normal(len(tt))
+    x = tone + nz * 0.5
+    x = signal.sosfilt(signal.butter(2, [250, 4000], 'band', fs=SR, output='sos'), x)
+    env = np.sin(np.pi * np.clip(tt / d, 0, 1)) ** 0.5 * (0.6 + 0.4 * (f - f.min()) / (np.ptp(f) + 1e-9))
+    return reverb(stereo(norm(x * env), np.linspace(-0.3, 0.3, len(tt))), decay=0.4, mix=0.12)
+
+
+LIB.update({'clap': clap, 'clap2': clap2, 'applause': applause, 'shock': shock, 'scratch': scratch})
+
+
 def render_cues(cues, total):
     """cues: list of (time, name, gain_db). Returns stereo mix."""
     out = np.zeros((int((total + 3) * SR), 2))
