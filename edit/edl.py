@@ -1,10 +1,9 @@
-# Edit decision list: (clip, src_in, src_out, zoom, note)
+# Edit decision list (TikTok/IG-safe cut): (clip, src_in, src_out, zoom, note)
 EDL = [
  (1, 4.60, 7.32,  1.00, "Let's spill the coffee, not the tea."),
- (1, 7.72, 14.62, 1.10, "Jadi korang tahu kan pasal kes penceraian ... narsistik. So I tak nak bincang pasal benda tu eh."),
  (1, 15.12, 16.52, 1.00, "Tapi apa yang I nak bincangkan adalah,"),
  (1, 16.90, 18.68, 1.00, "selepas penceraian,"),
- (1, 21.00, 25.80, 1.12, "banyaklah berlaku rata-rata perselisihan faham, gaduh, tikam-tikam,"),
+ (1, 21.00, 24.26, 1.12, "banyaklah berlaku rata-rata perselisihan faham, gaduh,"),
  (1, 26.16, 29.16, 1.22, "sehingga kan mengakibatkan anak-anak terabai."),
  (1, 29.44, 29.92, 1.00, "Jadi,"),
  (1, 30.52, 37.86, 1.00, "hari ini saya nak share tiga langkah ... in term of"),

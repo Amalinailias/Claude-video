@@ -11,6 +11,35 @@ words = json.load(open(words_json))  # times relative to the cut (speech) timeli
 FIX = {13: 'perceraian', 43: 'perceraian,', 23: None, 24: 'dicakap', 48: 'perselisihan', 49: 'faham,', 58: 'terabai.', 65: 'tiga',
        90: 'okay,', 167: 'benefits.', 219: 'Naja’a', 222: 'Ilias', 41: 'adalah,', 25: 'narsistik.'}
 
+# re-map word times: original-cut timeline -> source -> current EDL (removed words get t='')
+from edl_orig import EDL_ORIG
+from edl import EDL as EDL_NOW
+def spans(edl):
+    t, out = 0.0, []
+    for c, a, b, z, n in edl:
+        out.append((t, t + b - a, c, a, b)); t += b - a
+    return out
+ORIG, NOW = spans(EDL_ORIG), spans(EDL_NOW)
+def to_src(tc):
+    for c0, c1, c, a, b in ORIG:
+        if c0 - 1e-6 <= tc < c1 + 1e-6:
+            return c, a + (tc - c0)
+    return None
+def to_now(src, clamp_hi=False):
+    c, ts = src
+    for c0, c1, cc, a, b in NOW:
+        if cc == c and a - 0.02 <= ts <= b + 0.02:
+            return c0 + min(max(ts, a), b) - a
+    return None
+for w in words:
+    mid = to_src((w['s'] + w['e']) / 2)
+    st, en = to_src(w['s']), to_src(w['e'])
+    if mid is None or to_now(mid) is None:
+        w['gone'] = True
+        continue
+    s0 = to_now(st) if st and to_now(st) is not None else to_now(mid)
+    e0 = to_now(en) if en and to_now(en) is not None else to_now(mid) + 0.1
+    w['s'], w['e'] = s0, max(e0, s0 + 0.05)
 W = []
 for i, w in enumerate(words):
     txt = w['w'].strip()
@@ -19,6 +48,8 @@ for i, w in enumerate(words):
             txt = ''
         else:
             txt = FIX[i]
+    if w.get('gone'):
+        txt = ''
     W.append(dict(t=txt, s=round(w['s'] + HOOK, 3), e=round(w['e'] + HOOK, 3)))
 # merge "di" + "cakap" timing
 W[24]['s'] = W[23]['s']
@@ -48,8 +79,10 @@ for k, (a, b) in enumerate(CHUNKS):
             continue
         cls = 'c' if W[i]['t'] in CORAL else ('g' if W[i]['t'] in GOLD else '')
         ws.append(dict(i=i, t=W[i]['t'], s=W[i]['s'], e=W[i]['e'], c=cls))
+    if not ws:
+        continue
     start = ws[0]['s']
-    nxt = W[CHUNKS[k + 1][0]]['s'] if k + 1 < len(CHUNKS) else ws[-1]['e'] + 0.4
+    nxt = next((W[i]['s'] for kk in range(k + 1, len(CHUNKS)) for i in range(CHUNKS[kk][0], CHUNKS[kk][1] + 1) if W[i]['t']), ws[-1]['e'] + 0.4)
     end = min(nxt, ws[-1]['e'] + 0.9)
     chunks.append(dict(s=round(start - 0.04, 3), e=round(end - 0.02, 3), w=ws))
 

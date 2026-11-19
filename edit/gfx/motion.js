@@ -121,14 +121,6 @@
   add(`<div class="abs" id="c0wrap" style="left:0;right:0;top:214px;display:flex;justify-content:center">
     <div class="chip" id="c0" style="font-size:38px;padding:18px 32px 18px 24px">${IC('coffee')}<span>Coffee Talk&nbsp;<span class="serif" style="font-weight:400;color:var(--gold);font-size:46px">· kewangan</span></span></div></div>`);
 
-  add(`<div class="card" id="c1">
-    <div class="kicker"><span class="dot red" id="c1dot"></span>Isu semasa</div>
-    <div style="position:relative;display:inline-block;margin-top:22px"><div class="title" style="margin:0">Kes perceraian viral</div>
-      <div class="strike" id="c1strike" style="left:-8px;right:-8px;top:46%"></div></div>
-    <div class="sub">Pasangan dikatakan…</div>
-    <div class="row" style="margin-top:22px"><div class="chip" id="c1chip"><span class="serif" style="font-size:50px;font-weight:400">“narsistik”</span></div></div>
-    <div class="stamp" id="c1stamp">✕ Bukan topik hari ini</div>
-  </div>`);
 
   add(`<div class="card" id="c2">
     <div class="kicker"><span class="dot"></span>Fokus hari ini</div>
@@ -141,7 +133,6 @@
     <div class="row" style="margin-top:28px;gap:16px">
       <div class="chip" id="c3a">${IC('message-circle-x')}Perselisihan faham</div>
       <div class="chip" id="c3b">${IC('zap')}Gaduh</div>
-      <div class="chip" id="c3c">${IC('swords')}Tikam-tikam</div>
     </div>
     <div id="c3arrow" style="margin:16px 0 0 34px;width:56px;height:56px;color:var(--coral)">${RAW('arrow-down')}</div>
     <div class="row" style="margin-top:12px"><div class="chip coral" id="c3d" style="font-size:42px;padding:22px 36px 22px 26px">${IC('baby')}Anak-anak terabai</div></div>
@@ -263,9 +254,8 @@
 
   // ---------------------------------------------------------------- per-frame card logic
   const T = {};
-  T.c0 = [W(0) + 0.08, W(7) - 0.2];
-  T.c1 = [W(7) + 0.02, W(35) - 0.12];
-  T.c2 = [W(38) - 0.1, W(44) - 0.12];
+  T.c0 = [W(0) + 0.08, W(35) - 0.2];
+  T.c2 = [W(35) + 0.06, W(44) - 0.12];
   T.c3 = [W(44) + 0.02, W(59) - 0.12];
   T.c4 = [W(61) - 0.1, W(83) - 0.14];
   T.c5 = [W(83) - 0.04, W(138) - 0.14];
@@ -277,17 +267,6 @@
   function renderCards(t) {
     // c0
     pop($('c0'), t, T.c0[0], { tout: T.c0[1], from: 0.7 });
-    // c1
-    if (ee($('c1'), t, T.c1[0], T.c1[1])) {
-      const pulse = (t * 1.6) % 1;
-      $('c1dot').style.boxShadow = `0 0 0 ${(pulse * 14).toFixed(1)}px rgba(255,92,114,${(0.55 * (1 - pulse)).toFixed(3)})`;
-      pop($('c1chip'), t, W(24));
-      const st = E.outExpo(P(t, W(28), 0.5));
-      const sEl = $('c1strike');
-      if (show(sEl, st > 0 ? 1 : 0)) sEl.style.transform = `scaleX(${st.toFixed(4)})`;
-      pop($('c1stamp'), t, W(29) + 0.05, { from: 1.6, rot: -14, d: 0.4 });
-      if (st > 0) $('c1stamp').style.transform += ' rotate(-5deg)';
-    }
     // c2
     if (ee($('c2'), t, T.c2[0], T.c2[1])) {
       ee($('c2w1'), t, W(42) - 0.05, 1e9, { dy: 20, blur: 14, din: 0.55 });
@@ -298,7 +277,6 @@
     if (ee($('c3'), t, T.c3[0], T.c3[1])) {
       pop($('c3a'), t, W(48) - 0.02);
       pop($('c3b'), t, W(50) - 0.02);
-      pop($('c3c'), t, W(51) - 0.02);
       const ar = $('c3arrow');
       if (show(ar, P(t, W(55), 0.2))) ar.style.transform = `translateY(${(-16 * (1 - E.outCubic(P(t, W(55), 0.4))) + 6 * Math.sin(t * 8)).toFixed(2)}px)`;
       pop($('c3d'), t, W(56) - 0.02, { from: 0.4 });
@@ -420,9 +398,8 @@
   q(HOOK - 1.1, 'riser_short', -17); q(HOOK - 0.32, 'whoosh_long', -12); q(HOOK - 0.02, 'shutter', -10);
   // body
   q(T.c0[0], 'pop', -19);
-  q(T.c1[0], 'whoosh', -19); q(W(24), 'pop', -19); q(W(28), 'swipe', -14); q(W(29) + 0.05, 'impact_soft', -19);
   q(T.c2[0], 'whoosh', -19); q(W(42), 'shimmer', -21);
-  q(T.c3[0], 'whoosh', -20); q(W(48), 'blip', -19); q(W(50), 'pop', -17); q(W(51), 'pop_lo', -17);
+  q(T.c3[0], 'whoosh', -20); q(W(48), 'blip', -19); q(W(50), 'pop', -17);
   q(W(56), 'heartbeat', -11); q(W(56), 'impact_soft', -17);
   q(W(61) - 0.9, 'riser', -20); q(W(65) - 0.06, 'impact', -11); q(W(73), 'pop', -19); q(W(76), 'pop', -19);
   q(T.c5[0] - 0.12, 'whoosh_long', -15); q(T.c5[0] + 0.05, 'impact_soft', -15);
