@@ -12,6 +12,8 @@ work = sys.argv[1]
 data = json.loads(open(os.path.join(HERE, 'gfx/data.js')).read().split('=', 1)[1].rstrip().rstrip(';'))
 segs = data['segments']
 HOOK, TOTAL = data['hook'], data['total']
+HSEGS = data['hookSegs']
+BW_END = data['bwEnd']
 FPS = 30
 SRC = os.path.join(work, 'p4k.mov')          # 2160x3840, 30 fps
 FACE = (503.0, 870.0)                        # face centre in 1080x1920 design space
@@ -53,7 +55,11 @@ MASKDIR = sys.argv[sys.argv.index('--mask') + 1] if '--mask' in sys.argv else No
 meta = json.load(open(os.path.join(ovl, 'meta.json')))
 T = meta['times']
 N = int(math.ceil(TOTAL * FPS))
-BUMPS = [(0.0, 0.04), (2.95, 0.06), (3.55, 0.04), (T['cD'][0], 0.04), (T['cG'][0], 0.04), (W(70), 0.05), (W(83), 0.04), (T['cI'][0], 0.04)]
+if os.environ.get("LIMIT"): N = min(N, int(float(os.environ["LIMIT"]) * FPS))
+yy, xx = np.mgrid[0:OUTH, 0:OUTW].astype(np.float32)
+VIG = (1 - 0.55 * (((xx - OUTW / 2) / (OUTW * 0.62)) ** 2 + ((yy - OUTH / 2) / (OUTH * 0.62)) ** 2)).clip(0.35, 1)
+del yy, xx
+BUMPS = [(BW_END, 0.07), (T['cD'][0], 0.04), (T['cG'][0], 0.04), (W(70), 0.05), (W(83), 0.04), (T['cI'][0], 0.04)]
 
 
 def bump(t):
@@ -63,6 +69,20 @@ def bump(t):
         if 0 <= x < 2.5:
             z += s * (1 - math.exp(-x * 22)) * math.exp(-x * 3.2)
     return z
+
+
+def film_bw(img, n):
+    """high-contrast black & white with grain, vignette and projector flicker"""
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255
+    g = np.clip((g - 0.5) * 1.25 + 0.5, 0, 1)
+    g = g * g * (3 - 2 * g)  # soft S-curve
+    r = np.random.default_rng(n)
+    flick = 1 + 0.035 * np.sin(n * 2.3) + 0.02 * r.standard_normal()
+    gs = r.standard_normal((OUTH // 3, OUTW // 3)).astype(np.float32)
+    grain = cv2.resize(gs, (OUTW, OUTH), interpolation=cv2.INTER_LINEAR) * 0.05
+    g = (g * flick + grain) * VIG
+    g = np.clip(g, 0, 1)
+    return cv2.cvtColor((g * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
 
 
 class SegReader:
@@ -86,8 +106,6 @@ class SegReader:
         self.p.stdout.close(); self.p.wait()
 
 
-HOOK_SRC = 50.15   # smiling frame for the intro background
-hook_still = grab(HOOK_SRC)
 last = segs[-1]
 end_still = grab(last['src_out'] - 0.04)
 
@@ -107,7 +125,13 @@ reader, rseg = None, None
 for n in range(N):
     t = n / FPS
     if t < HOOK:
-        base, z = hook_still, segs[0]['zoom'] * (1 + 0.07 * t / HOOK)
+        sg = next(s for s in HSEGS if s['out_in'] - 1e-6 <= t < s['out_out'] + 1e-6)
+        if rseg is not sg:
+            if reader:
+                reader.close()
+            reader, rseg = SegReader(sg), sg
+        base = reader.get(int(round((t - sg['out_in']) * FPS)))
+        z = sg['zoom'] * (1 + 0.03 * (t - sg['out_in']) / max(0.01, sg['out_out'] - sg['out_in']))
     elif t >= last['out_out']:
         x = t - last['out_out']
         base, z = end_still, last['zoom'] * 1.025 + 0.02 * x
@@ -123,6 +147,8 @@ for n in range(N):
         prog = (t - sg['out_in']) / max(0.01, sg['out_out'] - sg['out_in'])
         z = sg['zoom'] * (1 + 0.025 * prog)
     frame = frame_at(base, z * bump(t))
+    if t < BW_END:
+        frame = film_bw(frame, n)
     o, mk = pending.pop(n).result()
     if mk is not None and mk.shape[2] == 4 and mk[:, :, 3].any():
         # frosted glass: blur the footage behind every glass panel

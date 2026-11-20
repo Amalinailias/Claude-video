@@ -51,23 +51,25 @@ svg{display:block}
 .strike{position:absolute;height:7px;border-radius:4px;background:var(--rose);transform-origin:0 50%}
 .big{font:800 120px/1 'PJS';letter-spacing:-.04em;background:linear-gradient(180deg,#E9A04B,#B5631F);-webkit-background-clip:text;background-clip:text;color:transparent}
 
-/* ---------- hook ---------- */
-#hook .glass{background:linear-gradient(145deg,rgba(255,255,255,.86),rgba(255,248,240,.66) 60%,rgba(255,242,228,.58));box-shadow:0 30px 80px rgba(0,0,0,.35),inset 0 2px 0 #fff}
+/* ---------- hook (BTS camera) ---------- */
+@font-face{font-family:'JBM';src:url(fonts/JetBrainsMono-Bold.ttf) format('truetype');font-weight:700}
+@font-face{font-family:'JBM';src:url(fonts/JetBrainsMono-ExtraBold.ttf) format('truetype');font-weight:800}
 #hook{position:absolute;inset:0}
-#hshade{position:absolute;inset:0;background:radial-gradient(70% 34% at 50% 50%,rgba(28,16,8,.10),rgba(20,12,6,.62) 100%)}
-.notif{left:64px;width:952px;padding:26px 30px;display:flex;align-items:center;gap:26px;border-radius:38px}
-.notif .app{width:96px;height:96px;border-radius:24px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
-.notif .app svg{width:56px;height:56px}
-.notif .meta{font:700 22px/1 'PJS';letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
-.notif .msg{font:800 40px/1.12 'PJS';margin-top:10px;color:var(--ink)}
-#calc{left:64px;width:952px;top:640px;padding:34px 40px 30px;text-align:center}
-#calc .eq{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:22px;font:800 40px/1 'PJS';color:var(--ink2)}
-#calcres{font:800 150px/1 'PJS';letter-spacing:-.04em;margin-top:22px;background:linear-gradient(180deg,#F0A54F,#B5631F);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
-#calc .note{font:600 22px/1.3 'PJS';color:var(--muted);margin-top:14px}
-#hban{left:64px;width:952px;top:1150px;padding:30px 36px;text-align:center}
-#hban .t1{font:800 58px/1.12 'PJS'}
-#hnote{position:absolute;left:60px;right:60px;top:1690px;text-align:center;font:600 26px/1.35 'PJS';color:rgba(255,255,255,.82);text-shadow:0 2px 10px rgba(0,0,0,.6)}
-#hban .t1 .s{position:relative;display:inline-block;color:var(--rose)}
+#vf{position:absolute;inset:0;color:#fff}
+#vf .corner{position:absolute;width:86px;height:86px;border-color:rgba(255,255,255,.9) !important}
+.vft{position:absolute;display:flex;align-items:center;gap:14px;font:800 32px/1 'JBM';letter-spacing:.06em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+#rdot{width:24px;height:24px;border-radius:50%;background:#FF3B3B;box-shadow:0 0 14px rgba(255,59,59,.8)}
+.tw{position:absolute;left:90px;right:60px;font:800 54px/1.25 'JBM';color:#fff;letter-spacing:-.01em}
+.tw .tb{background:rgba(0,0,0,.62);padding:4px 16px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.caret{font-style:normal;color:#fff;margin-left:2px}
+#sebenar{position:absolute;left:0;right:0;top:330px;text-align:center;font:italic 400 128px/1 'ISerif';color:#fff;text-shadow:0 6px 30px rgba(0,0,0,.6)}
+#stamp{left:50%;top:330px;padding:24px 46px 24px 36px;border-radius:36px;display:flex;align-items:center;gap:20px;font:800 120px/1 'PJS';letter-spacing:-.02em;color:var(--olive);transform-origin:50% 50%}
+#stamp .ic{font-size:110px;color:var(--olive)}
+#hnote{position:absolute;left:60px;right:60px;top:1710px;text-align:center;font:600 26px/1.35 'PJS';color:rgba(255,255,255,.88);text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.ex{display:flex;align-items:center;gap:16px;margin-top:22px;padding:16px 22px;border-radius:24px;background:rgba(255,255,255,.55);font:700 32px/1.2 'PJS'}
+.ex .ic{font-size:40px;color:var(--amber)}
+.ex b{color:var(--amber)}
+.ex .big2{font-size:40px}
 
 /* ---------- formula / timeline / table / scale / body ---------- */
 .fx{display:flex;align-items:center;justify-content:space-between;margin-top:26px}

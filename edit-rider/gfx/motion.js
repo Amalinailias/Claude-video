@@ -55,29 +55,30 @@
   const fmt = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   // =====================================================================
-  // HOOK — notification widgets + claim calculator
+  // HOOK — "BTS camera": B&W viewfinder + typewriter → colour reveal stamp
   // =====================================================================
-  const HOOK = D.hook;
+  const HOOK = D.hook, BW = D.bwEnd;
+  const L1 = 'Hilang 1 ruas jari…', L2 = 'boleh claim insurans ke?';
+  const TY = [[L1, 0.25, 1.3], [L2, 1.45, 2.65]];
   add(`<div id="hook">
-    <div id="hshade"></div>
-    <div id="hstack" class="abs" style="left:0;top:0;width:1080px;height:1920px;transform:scale(.84);transform-origin:540px 0">
-    <div class="glass notif" id="n1" style="top:220px">
-      <div class="app" style="background:linear-gradient(135deg,#E08A99,#B9576A)">${RAW('ambulance')}</div>
-      <div style="flex:1"><div class="meta"><span>Kemalangan</span><span>baru tadi</span></div><div class="msg">Hilang 1 ruas ibu jari kanan</div></div>
+    <div id="vf">
+      <div class="corner" style="left:56px;top:96px;border-left:5px solid;border-top:5px solid"></div>
+      <div class="corner" style="right:56px;top:96px;border-right:5px solid;border-top:5px solid"></div>
+      <div class="corner" style="left:56px;bottom:96px;border-left:5px solid;border-bottom:5px solid"></div>
+      <div class="corner" style="right:56px;bottom:96px;border-right:5px solid;border-bottom:5px solid"></div>
+      <div class="vft" style="left:104px;top:132px"><span id="rdot"></span>REC</div>
+      <div class="vft" id="tc" style="right:104px;top:132px">00:00:00:00</div>
+      <div class="vft" style="left:104px;bottom:136px;font-size:26px;opacity:.85">BTS · TAKE 01</div>
+      <div class="vft" style="right:104px;bottom:136px;font-size:26px;opacity:.85">4K · 50P</div>
     </div>
-    <div class="glass notif" id="n2" style="top:392px">
-      <div class="app" style="background:linear-gradient(135deg,#F3B061,#C9772E)">${RAW('circle-help')}</div>
-      <div style="flex:1"><div class="meta"><span>Soalan</span><span>sekarang</span></div><div class="msg">Boleh claim ke?</div></div>
-    </div>
-    <div class="glass" id="calc" style="top:562px">
-      <div class="kicker" style="justify-content:center"><span class="ic">${RAW('calculator')}</span>Kalkulator pampasan</div>
-      <div class="eq"><span class="chip amber" id="cq1" style="font-size:42px">15%</span><span id="cqx">×</span><span class="chip" id="cq2" style="font-size:42px">RM100,000*</span><span id="cqe">=</span></div>
-      <div id="calcres">RM0</div>
-    </div>
-    <div class="glass" id="hban" style="top:1330px"><div class="t1">Tak perlu tunggu<br>hilang upaya <span class="s">100%<span class="strike" id="hstrike" style="left:-6px;right:-6px;top:48%"></span></span></div></div>
-    </div>
-    <div id="hnote">*Contoh ilustrasi. Pampasan sebenar tertakluk pada rider,<br>jumlah perlindungan &amp; terma polisi.</div>
-    <div id="hflash" class="abs" style="inset:0;background:radial-gradient(60% 40% at 50% 45%,rgba(255,236,200,.95),rgba(255,210,150,0) 70%)"></div>
+    <div class="tw" id="tw1" style="top:300px"><span class="tb" id="tw1t"></span></div>
+    <div class="tw" id="tw2" style="top:392px"><span class="tb" id="tw2t"></span></div>
+    <div class="tw" id="tw3" style="top:500px"><span class="tb" style="color:#FF8F9E">Ramai sangka: TAK BOLEH.</span></div>
+    <div id="sebenar">Sebenarnya…</div>
+    <div class="glass" id="stamp"><span class="ic">${RAW('circle-check')}</span>BOLEH!</div>
+    <div class="abs" id="stampsub" style="left:0;right:0;top:560px;display:flex;justify-content:center"><span class="chip amber" style="font-size:36px">Dari 2% hingga 100%*</span></div>
+    <div id="hnote">*Ikut jadual manfaat polisi. Tertakluk pada terma &amp; syarat.</div>
+    <div id="hflash" class="abs" style="inset:0;background:#fff"></div>
     <div id="hblack" class="abs" style="inset:0;background:#000"></div>
   </div>`);
 
@@ -85,27 +86,37 @@
     const hook = $('hook');
     if (t >= HOOK + 0.02) { hook.style.display = 'none'; return; }
     hook.style.display = '';
-    const reveal = E.inOut(P(t, HOOK - 0.5, 0.5));
-    $('hshade').style.opacity = (1 - reveal).toFixed(3);
-    $('hblack').style.opacity = (1 - E.outCubic(P(t, 0, 0.25))).toFixed(3);
-    $('hflash').style.opacity = (0.5 * bell(P(t, 2.95, 0.35)) + 0.45 * bell(P(t, HOOK - 0.3, 0.4))).toFixed(3);
-    const tOut = HOOK - 0.58;
-    const dim = 1 - 0.3 * E.inOut(P(t, 1.4, 0.4));
-    if (ee($('n1'), t, 0.15, tOut, { dy: -70, sc: 0.06, blur: 12, din: 0.5 })) { $('n1').style.opacity = (parseFloat($('n1').style.opacity) * dim).toFixed(3); }
-    if (ee($('n2'), t, 0.8, tOut + 0.05, { dy: -70, sc: 0.06, blur: 12, din: 0.5 })) { $('n2').style.opacity = (parseFloat($('n2').style.opacity) * dim).toFixed(3); }
-    ee($('hnote'), t, 1.5, tOut + 0.2, { dy: 8, blur: 4, sc: 0 });
-    ee($('calc'), t, 1.4, tOut + 0.1, { dy: 50, sc: 0.12, blur: 14, din: 0.55 });
-    pop($('cq1'), t, 1.65, { from: 0.4 });
-    ee($('cqx'), t, 1.78, 1e9, { dy: 0, blur: 6, sc: 0 });
-    pop($('cq2'), t, 1.9, { from: 0.4 });
-    ee($('cqe'), t, 2.05, 1e9, { dy: 0, blur: 6, sc: 0 });
-    const k = E.outExpo(P(t, 2.15, 0.85));
-    $('calcres').innerHTML = 'RM' + fmt(Math.round(15000 * k / 10) * 10) + '<span style="font-size:64px;vertical-align:top">*</span>';
-    const b = 1 + 0.12 * bell(P(t, 2.95, 0.35));
-    $('calcres').style.transform = `scale(${b.toFixed(4)})`;
-    ee($('hban'), t, 3.25, tOut + 0.15, { dy: 40, sc: 0.1, blur: 12, din: 0.45 });
-    const st = E.outExpo(P(t, 3.55, 0.4));
-    if (show($('hstrike'), st > 0 ? 1 : 0)) $('hstrike').style.transform = `scaleX(${st.toFixed(4)})`;
+    $('hblack').style.opacity = (1 - E.outCubic(P(t, 0, 0.2))).toFixed(3);
+    $('hflash').style.opacity = (0.85 * Math.exp(-Math.max(0, t - BW) * 7) * (t >= BW ? 1 : 0)).toFixed(3);
+    // viewfinder UI only during the black & white part
+    const vf = $('vf');
+    if (show(vf, (t < BW ? 1 : 0) * E.outCubic(P(t, 0.05, 0.3)))) {
+      $('rdot').style.opacity = (Math.floor(t * 2) % 2 === 0) ? '1' : '0.15';
+      const fr = Math.floor(t * 25) % 25, s = Math.floor(t);
+      $('tc').textContent = `00:00:${String(s).padStart(2, '0')}:${String(fr).padStart(2, '0')}`;
+    }
+    // typewriter lines
+    TY.forEach(([txt, t0, t1], i) => {
+      const el = $('tw' + (i + 1));
+      if (show(el, t >= t0 && t < 3.45 ? 1 : 0)) {
+        const n = Math.min(txt.length, Math.floor(txt.length * P(t, t0, t1 - t0)));
+        const caret = t < t1 + 0.05 ? '<i class="caret">▌</i>' : '';
+        $('tw' + (i + 1) + 't').innerHTML = txt.slice(0, n) + caret;
+      }
+    });
+    const g = P(t, 2.85, 0.25);
+    const tw3 = $('tw3');
+    if (show(tw3, (t >= 2.85 && t < 3.45) ? 1 : 0)) {
+      const j = (1 - g) * 14;
+      tw3.style.transform = `translate(${(Math.sin(t * 180) * j).toFixed(1)}px, 0) skewX(${(Math.sin(t * 97) * j * 0.6).toFixed(1)}deg)`;
+    }
+    // "Sebenarnya…" over the covered lens
+    ee($('sebenar'), t, 3.45, BW - 0.05, { dy: 16, sc: 0.08, blur: 16, din: 0.35, dout: 0.08 });
+    // colour reveal
+    const so = pop($('stamp'), t, BW + 0.02, { from: 1.9, rot: -14, d: 0.42, base: 'translateX(-50%)', tout: HOOK - 0.32, dout: 0.28 });
+    if (so) $('stamp').style.transform += ' rotate(-5deg)';
+    pop($('stampsub'), t, BW + 0.35, { from: 0.4, tout: HOOK - 0.3, dout: 0.25 });
+    ee($('hnote'), t, BW + 0.35, HOOK - 0.3, { dy: 6, blur: 3, sc: 0 });
   }
 
   // =====================================================================
@@ -124,6 +135,8 @@
       <div class="fop" id="fo2">=</div>
       <div class="fbox" id="f3" style="background:linear-gradient(135deg,rgba(243,176,97,.9),rgba(201,119,46,.9))"><span class="ic" style="color:#fff">${RAW('hand-coins')}</span><div class="l" style="color:#fff">Pampasan<br>anda</div></div>
     </div>
+    <div class="ex" id="fex"><span class="ic">${RAW('calculator')}</span><span>Contoh: <b>15%</b> × RM100,000* = <b class="big2" id="fexr">RM15,000</b></span></div>
+    <div class="foot" id="fexn">*Contoh ilustrasi · 15% = 1 ruas ibu jari kanan · ikut jumlah perlindungan &amp; terma polisi</div>
   </div>`);
 
   // C — table preview
@@ -246,8 +259,8 @@
 
   const T = {};
   T.pA = [W(0) + 0.05, W(6) - 0.12];
-  T.cB = [W(6) - 0.02, W(20) - 0.12];
-  T.cC = [W(20) - 0.04, W(24) - 0.12];
+  T.cB = [W(6) - 0.02, W(24) - 0.12];
+  T.cC = [1e9, 1e9];  // preview table dropped: the worked example + full table carry it
   T.cD = [W(24) - 0.04, W(39) - 0.12];
   T.cE = [W(39) - 0.04, W(47) - 0.12];
   T.cF = [W(47) - 0.04, W(62) - 0.12];
@@ -266,6 +279,10 @@
       pop($('f2'), t, W(16) - 0.05, { from: 0.5 });
       ee($('fo2'), t, W(18), 1e9, { dy: 0, sc: 0, blur: 6 });
       pop($('f3'), t, W(19) - 0.05, { from: 0.4 });
+      ee($('fex'), t, W(19) + 0.25, 1e9, { dy: 14, blur: 8 });
+      ee($('fexn'), t, W(19) + 0.35, 1e9, { dy: 6, blur: 3, sc: 0 });
+      const gx = bell(P(t, W(21) - 0.05, 0.7));
+      $('fex').style.boxShadow = gx > 0.01 ? `0 0 0 ${(4 * gx).toFixed(1)}px rgba(201,119,46,.6), 0 0 ${(30 * gx).toFixed(0)}px rgba(239,162,79,${(0.6 * gx).toFixed(2)})` : 'none';
     }
     // C
     if (ee($('cC'), t, T.cC[0], T.cC[1])) {
@@ -401,20 +418,22 @@
   // SFX cue sheet (time, name, gain dB) — hook cues get +7.5 dB, body +2 dB
   // =====================================================================
   const C = [];
-  const q = (tm, name, g) => C.push([+tm.toFixed(3), name, g + (tm < HOOK ? 7.5 : 2)]);
-  // hook: attention grabber
-  q(0.0, 'bass_hit', -13); q(0.02, 'whoosh_down', -20);
-  q(0.15, 'notif', -15); q(0.8, 'notif2', -15); q(0.82, 'scratch', -16);
-  q(1.38, 'whoosh', -18); q(1.42, 'glass_tap', -20);
-  q(1.65, 'blip', -19); q(1.9, 'blip', -19);
-  q(2.15, 'counter', -17); q(2.95, 'chaching', -11); q(2.97, 'clap2', -13);
-  q(3.25, 'shock', -11); q(3.55, 'swipe', -16);
-  q(HOOK - 0.5, 'whoosh_long', -14); q(HOOK - 0.03, 'bass_hit', -18);
+  const q = (tm, name, g) => C.push([+tm.toFixed(3), name, g + (tm < HOOK ? 10.5 : 2)]);
+  // hook: BTS camera
+  q(0.0, 'rec_beep', -15); q(0.05, 'projector', -19);
+  TY.forEach(([txt, t0, t1]) => { for (let k = 0; k < txt.length; k++) if (txt[k] !== ' ') q(t0 + (k + 1) / txt.length * (t1 - t0) - 0.02, 'type_key', -21); });
+  q(TY[1][2] + 0.05, 'type_bell', -18);
+  q(2.85, 'glitch', -14); q(2.86, 'scratch', -17);
+  q(3.42, 'whoosh_down', -19); q(3.45, 'heartbeat', -11); q(BW - 1.1, 'riser_short', -17);
+  q(BW, 'clapper', -8); q(BW, 'bass_hit', -13); q(BW + 0.02, 'impact', -17); q(BW + 0.05, 'shimmer', -18);
+  q(BW + 0.35, 'pop', -17);
+  q(BW + 0.8, 'clap2', -12); q(BW + 0.85, 'ding', -17);
+  q(HOOK - 0.35, 'whoosh_long', -14);
   // body
   q(T.pA[0], 'pop', -19);
   q(T.cB[0], 'whoosh', -18); q(T.cB[0] + 0.02, 'glass_tap', -20); q(W(8), 'shimmer', -22);
-  q(W(13), 'pop', -19); q(W(16), 'pop', -19); q(W(19), 'blip3', -18); q(W(19) + 0.05, 'coins', -22);
-  q(T.cC[0], 'whoosh', -19); [0, 1, 2].forEach(i => q(W(20) + 0.1 + 0.18 * i, 'glass_tap', -21)); q(W(21), 'blip', -20);
+  q(W(13), 'pop', -19); q(W(16), 'pop', -19); q(W(19), 'blip3', -18); q(W(19) + 0.05, 'coins', -22); q(W(19) + 0.3, 'chaching', -16);
+  q(W(21) - 0.05, 'blip3', -19);
   q(T.cD[0] - 0.1, 'whoosh_long', -16); q(W(25), 'swipe', -19); q(W(32), 'swipe', -19);
   q(T.cE[0], 'whoosh', -18); q(W(40) - 0.05, 'counter', -18); q(W(41), 'pop', -19); q(W(44), 'pop_lo', -19); q(W(46), 'ding', -17);
   q(T.cF[0] - 0.1, 'whoosh_long', -16); q(W(53) - 0.2, 'riser_short', -24); q(W(59), 'blip3', -19);

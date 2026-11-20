@@ -414,6 +414,57 @@ def scratch(d=0.42):
 LIB.update({'clap': clap, 'clap2': clap2, 'applause': applause, 'shock': shock, 'scratch': scratch})
 
 
+def rec_beep():
+    out = np.zeros(int(0.5 * SR))
+    for off in (0.0, 0.16):
+        tt = t_axis(0.09)
+        x = np.sin(2 * np.pi * 1975.5 * tt) * np.minimum(1, tt / 0.003) * np.minimum(1, (0.09 - tt) / 0.01)
+        s = int(off * SR); out[s:s + len(x)] += x
+    return stereo(norm(out) * 0.8)
+
+
+def projector(d=4.4):
+    """film projector: 24 fps shutter clatter + motor whir"""
+    tt = t_axis(d)
+    x = np.zeros(len(tt))
+    for k in range(int(d * 24)):
+        L = int(0.012 * SR); s = int(k / 24 * SR)
+        c = rng.standard_normal(L) * np.exp(-np.arange(L) / SR * 400) * (0.7 + 0.3 * rng.random())
+        e = min(len(x), s + L); x[s:e] += c[: e - s]
+    x = signal.sosfilt(signal.butter(2, [900, 6000], 'band', fs=SR, output='sos'), x)
+    whir = np.sin(2 * np.pi * 96 * tt) * 0.25 + band_sweep_noise(d, 380, 420, bw=0.25) * 0.5
+    y = norm(x) * 0.8 + norm(whir) * 0.35
+    y *= np.minimum(1, tt / 0.15) * np.minimum(1, (d - tt) / 0.12)
+    return reverb(stereo(norm(y)), decay=0.5, mix=0.12)
+
+
+def type_key():
+    tt = t_axis(0.09)
+    x = rng.standard_normal(len(tt)) * np.exp(-tt * 260) + 0.6 * np.sin(2 * np.pi * rng.uniform(1700, 2400) * tt) * np.exp(-tt * 180)
+    thock = np.sin(2 * np.pi * 180 * tt) * np.exp(-tt * 90) * 0.5
+    x = signal.sosfilt(signal.butter(2, 600, 'high', fs=SR, output='sos'), x) + thock
+    return stereo(norm(x) * rng.uniform(0.6, 0.9), rng.uniform(-0.2, 0.2))
+
+
+def type_bell():
+    tt = t_axis(1.2)
+    x = sum(np.sin(2 * np.pi * 3135.96 * r * tt) * np.exp(-tt * (4 + 3 * k)) / (k + 1) for k, r in enumerate([1, 2.42, 3.9]))
+    return reverb(stereo(norm(x) * 0.8), decay=0.8, mix=0.25, bright=10000)
+
+
+def clapper():
+    """clapperboard: hard wooden slap with a short room"""
+    tt = t_axis(0.35)
+    x = rng.standard_normal(len(tt)) * np.exp(-tt * 140)
+    x = signal.sosfilt(signal.butter(2, [400, 5000], 'band', fs=SR, output='sos'), x)
+    knock = sum(np.sin(2 * np.pi * f * tt) * np.exp(-tt * 45) for f in (520, 1130, 1790))
+    y = norm(x) + norm(knock) * 0.6
+    return reverb(stereo(norm(y)), decay=0.5, mix=0.2, bright=8000)
+
+
+LIB.update({'rec_beep': rec_beep, 'projector': projector, 'type_key': type_key, 'type_bell': type_bell, 'clapper': clapper})
+
+
 def render_cues(cues, total):
     """cues: list of (time, name, gain_db). Returns stereo mix."""
     out = np.zeros((int((total + 3) * SR), 2))

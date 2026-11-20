@@ -3,7 +3,7 @@ import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from timeline import build, HOOK  # noqa
+from timeline import build, HOOK, BW_END, hook_segments  # noqa
 
 words_json, out_js = sys.argv[1], sys.argv[2]
 words = json.load(open(words_json))
@@ -43,7 +43,7 @@ for name in ['eye', 'ear', 'hand', 'accessibility', 'calendar-days', 'percent', 
 
 segs, speech_end = build()
 end_start = W[-1]['e'] + 0.35
-data = dict(hook=HOOK, words=W, chunks=chunks, icons=icons, endStart=round(end_start, 3),
+data = dict(hook=HOOK, bwEnd=BW_END, hookSegs=hook_segments(), words=W, chunks=chunks, icons=icons, endStart=round(end_start, 3),
             total=round(end_start + 3.4, 3), segments=segs)
 with open(out_js, 'w') as f:
     f.write('window.DATA = ' + json.dumps(data, ensure_ascii=False) + ';\n')
