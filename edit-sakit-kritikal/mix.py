@@ -36,6 +36,8 @@ segs, _ = build()
 voice = np.zeros(int((TOTAL + 1) * SR), np.float32)
 XF = int(0.012 * SR)
 for s in segs:
+    if s.get('mute'):
+        continue
     a, b = int(s['src_in'] * SR), int(s['src_out'] * SR)
     x = src[s['clip']][max(0, a - XF // 2): b + XF // 2].copy()
     ramp = np.sin(np.linspace(0, np.pi / 2, XF)) ** 2

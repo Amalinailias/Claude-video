@@ -16,15 +16,28 @@ def to_out(ts):
 
 FIX = {'when': None, 'kanser,': 'kanser,', 'ditop': 'top', 'up': 'up', 'dialisis,': 'dialisis,'}
 W = []
+def overlap(w):
+    best = None
+    for s in segs:
+        if s.get('mute'):
+            continue
+        ov = min(w['e'], s['src_out']) - max(w['s'], s['src_in'])
+        if ov > 0 and (best is None or ov > best[0]):
+            best = (ov, s)
+    return best
 for w in raw:
     txt = w['w'].strip()
     mid = (w['s'] + w['e']) / 2
-    if to_out(mid) is None:
+    ob = overlap(w)
+    if ob is None or ob[0] < min(0.15, 0.4 * (w['e'] - w['s'])):
         continue
+    sg = ob[1]
+    if to_out(mid) is None or not (sg['src_in'] <= mid <= sg['src_out']):
+        mid = min(max(mid, sg['src_in'] + 0.02), sg['src_out'] - 0.02)
     if 50.5 < w['s'] < 51.0 and txt == 'when':   # ambiguous 'unpaid/annual' -> dropped from captions
         continue
-    s0 = to_out(w['s']) if to_out(w['s']) is not None else to_out(mid)
-    e0 = to_out(w['e']) if to_out(w['e']) is not None else to_out(mid) + 0.1
+    s0 = to_out(max(w['s'], sg['src_in'])) if to_out(max(w['s'], sg['src_in'])) is not None else to_out(mid)
+    e0 = to_out(min(w['e'], sg['src_out'])) if to_out(min(w['e'], sg['src_out'])) is not None else to_out(mid) + 0.1
     W.append(dict(t=txt, s=round(s0, 3), e=round(max(e0, s0 + 0.05), 3), src=round(w['s'], 2)))
 # small text fixes
 for w in W:
@@ -32,6 +45,8 @@ for w in W:
     if w['t'] == '100': w['t'] = 'RM100'
     if w['t'] == 'ringgit' : w['t'] = ''
 W = [w for w in W if w['t']]
+W.sort(key=lambda w: w['s'])
+MAIN_START = segs[2]['out_in']
 
 GOLD = {'kecil', 'nampak', 'barulah', 'medical', 'card', 'settle', 'lupa', 'sendiri', 'outpatient', 'claim', 'dialisis,', 'kanser,',
         'duit', 'treatment', 'sihat?', 'months,', 'weeks', 'recover', 'cost.', 'cost', 'Pampasan', 'pampasan', 'sakit', 'kritikal', 'kritikal.',
@@ -64,8 +79,15 @@ for name in ['credit-card', 'hospital', 'house', 'receipt', 'circle-check', 'cir
     svg = re.sub(r'\s+', ' ', re.sub(r'<!--.*?-->', '', open(p).read(), flags=re.S).strip())
     icons[name] = svg.replace('width="24"', '').replace('height="24"', '').replace('stroke-width="2"', 'stroke-width="1.8"')
 
-end_start = W[-1]['e'] + 0.35
-data = dict(hook=HOOK, words=W, chunks=CH, icons=icons, endStart=round(end_start, 3), total=round(end_start + 3.6, 3), segments=segs)
+end_start = max(w['e'] for w in W) + 0.35
+# keep the main-content words at stable indices 0..; hook words ('Haa, nampak kan?') go at the end
+order = [w for w in W if w['s'] >= MAIN_START - 0.05] + [w for w in W if w['s'] < MAIN_START - 0.05]
+pos = {id(w): k for k, w in enumerate(order)}
+for c in CH:
+    for x in c['w']:
+        pass
+W = order
+data = dict(hook=HOOK, words=W, chunks=CH, mainStart=MAIN_START, segH=[segs[0]['out_in'], segs[0]['out_out'], segs[1]['out_in'], segs[1]['out_out']], icons=icons, endStart=round(end_start, 3), total=round(end_start + 3.6, 3), segments=segs)
 open(out_js, 'w').write('window.DATA = ' + json.dumps(data, ensure_ascii=False) + ';\n')
 print('words', len(W), 'chunks', len(CH), 'total', data['total'], 'endStart', data['endStart'])
 for i, w in enumerate(W):

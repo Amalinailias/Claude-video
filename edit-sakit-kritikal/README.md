@@ -1,8 +1,7 @@
 # Suntingan video 3: Pampasan Sakit Kritikal
 
 Pipeline sama seperti `edit-rider/`, dengan perbezaan berikut:
-- **Sumber 1080p (export CapCut)**: hook CapCut asal (0–8s, dengan teks tertanam dan transisi blur) dibuang. Hook dibina semula atas ayat "Bila kecil orang tak nampak… barulah nampak": teks kecil membesar jadi tajuk.
+- **Sumber 1080p (export CapCut)**: hook dibina dari shot gerak tangan kau (1.0–2.4s, bisu + SFX) dan reveal tajuk asal kau ("Haa, nampak kan?"). Selepas potongan, tajuk kami sambung di kedudukan sama, mengecil pada "bila kecil" dan membesar pada "barulah nampak".
 - **Font tajuk ikut hook asal**: Anton (kuning, bayang merah) + Playfair Display 900. Kapsyen guna Anton.
-- **Color grading premium**: `grade_premium.ffmpeg.txt` digunakan semasa buat proxy:
-  `ffmpeg -i clip.mov -vf "fps=30,$(cat grade_premium.ffmpeg.txt),format=yuv420p" -an -c:v libx264 -crf 14 p.mov`
+- **Warna asal** (tiada color grading, atas permintaan). `grade_premium.ffmpeg.txt` disimpan sebagai pilihan sahaja.
 - Timing perkataan dipetakan terus dari transkrip asal melalui EDL (`build_data.py`). Kapsyen dipecah automatik ikut ayat.

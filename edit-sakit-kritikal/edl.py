@@ -1,6 +1,10 @@
 # Edit decision list for video 3 (critical illness): (clip, src_in, src_out, zoom, note)
+# optional 6th field: dict(mute=True) silences the source audio, frame=(x, y, zoom_end) keeps the original framing
+# anchored at (x, y) and pushes in from `zoom` to zoom_end across the segment.
 EDL = [
- (1, 8.40, 12.58, 1.25, "Bila kecil orang tak nampak, tapi bila dah berlaku barulah nampak."),
+ (1, 1.00, 2.40, 1.00, "HOOK A: pinch gesture with the tiny caption (her CapCut shot)", dict(mute=True, frame=(514, 886, 1.14))),
+ (1, 3.82, 4.92, 1.00, "HOOK B: zoom-out reveal of her title - 'Haa, nampak kan?'", dict(frame=(527, 885, 1.04))),
+ (1, 8.57, 12.58, 1.25, "Bila kecil orang tak nampak, tapi bila dah berlaku barulah nampak."),
  (1, 12.58, 18.34, 1.35, "Ramai yang ingat kalau dah ada medical card dah settle semua. Dah boleh bayar beli rawatan."),
  (1, 18.34, 23.96, 1.25, "Tetapi mereka lupa, kos rawatan selepas itu pun perlu dibayar sendiri."),
  (1, 23.96, 28.16, 1.40, "Sebab normally kita akan ada outpatient pay and claim,"),

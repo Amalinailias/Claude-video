@@ -26,17 +26,18 @@ OUTW, OUTH = (2160, 3840) if mode_4k else (1080, 1920)
 DECW, DECH = 1080, 1920   # source is 1080p
 
 
-def matrix(z):
+def matrix(z, face=None, target=None):
     """design-space transform D' = z (D - FACE) + TARGET, mapped from decode px to output px."""
+    face = face or FACE; target = target or TARGET
     a = z * OUTW / DECW
     k = OUTW / 1080.0
-    bx = k * (TARGET[0] - z * FACE[0])
-    by = k * (TARGET[1] - z * FACE[1])
+    bx = k * (target[0] - z * face[0])
+    by = k * (target[1] - z * face[1])
     return np.float32([[a, 0, bx], [0, a, by]])
 
 
-def frame_at(img, z):
-    return cv2.warpAffine(img, matrix(z), (OUTW, OUTH), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+def frame_at(img, z, face=None, target=None):
+    return cv2.warpAffine(img, matrix(z, face, target), (OUTW, OUTH), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
 
 
 def grab(t):
@@ -124,6 +125,7 @@ pending = {n: pool.submit(load_ovl, n) for n in range(min(N, 12))}
 reader, rseg = None, None
 for n in range(N):
     t = n / FPS
+    fa = None
     if t < HOOK:
         sg = next(s for s in HSEGS if s['out_in'] - 1e-6 <= t < s['out_out'] + 1e-6)
         if rseg is not sg:
@@ -146,7 +148,16 @@ for n in range(N):
         base = reader.get(int(round((t - sg['out_in']) * FPS)))
         prog = (t - sg['out_in']) / max(0.01, sg['out_out'] - sg['out_in'])
         z = sg['zoom'] * (1 + 0.025 * prog)
-    frame = frame_at(base, z * bump(t))
+        fa = None
+        if sg.get('frame'):
+            fx, fy, zend = sg['frame']
+            e = prog * prog * (3 - 2 * prog)
+            z = sg['zoom'] + (zend - sg['zoom']) * e
+            fa = (fx, fy)
+    if t >= HOOK and fa is not None:
+        frame = frame_at(base, z * bump(t), fa, fa)
+    else:
+        frame = frame_at(base, z * bump(t))
     if t < BW_END:
         frame = film_bw(frame, n)
     o, mk = pending.pop(n).result()

@@ -1,44 +1,55 @@
 
   // =====================================================================
-  // HOOK — "kecil tak nampak → besar baru nampak": tiny caption grows into the title
+  // HOOK — her pinch shot (tiny caption) → her own title reveal → our title takes over:
+  //        shrinks on "bila kecil", grows big on "barulah nampak"
   // =====================================================================
   const HOOK = D.hook;
-  const TS = W(9) + 0.06;          // "barulah": start growing
-  const TL = W(10) - 0.03;         // "nampak": lands big
-  const TOUT = W(14) - 0.35;       // exits before the first card
+  const [A0, A1, B0, B1] = D.segH;
+  const TA = D.mainStart;
+  const TK = W(1) - 0.05;          // "kecil"
+  const TS = W(9) + 0.06;          // "barulah"
+  const TL = W(10) - 0.03;         // "nampak"
+  const TOUT = W(14) - 0.35;
+  const MT_TOP = window.MT_TOP || 786;
   add(`<div id="hook">
+    <div id="fring"></div>
     <div id="speed" style="opacity:0"></div>
-    <div id="tiny" style="left:460px;top:1064px;width:220px">Pampasan Sakit<br>Kritikal</div>
-    <div id="ttl" style="top:300px"><div class="ty">PAMPASAN SAKIT</div><div class="ts" style="margin-top:-6px">KRITIKAL</div></div>
-    <div id="hflash" class="abs" style="inset:0;background:radial-gradient(70% 40% at 50% 26%,rgba(255,244,214,.95),rgba(255,226,160,0) 70%)"></div>
+    <div id="mt" style="left:-13px;top:${MT_TOP}px"><div class="ty" style="font-size:118px;transform:scaleY(1.16);transform-origin:50% 0">PAMPASAN SAKIT</div><div class="ts" style="font-size:89px;margin-top:-13px;transform:scaleY(1.17);transform-origin:50% 0">KRITIKAL</div></div>
+    <div id="hflash" class="abs" style="inset:0;background:radial-gradient(70% 40% at 50% 46%,rgba(255,244,214,.95),rgba(255,226,160,0) 70%)"></div>
   </div>`);
+  const MT = $('mt');
+  let MH = 0;
 
   function renderHook(t) {
     const hook = $('hook');
     if (t > TOUT + 0.5) { hook.style.display = 'none'; return; }
     hook.style.display = '';
-    // tiny caption by her pinching fingers
-    const tiny = $('tiny');
-    if (show(tiny, (t < TS ? 1 : 0) * E.outCubic(P(t, 0.05, 0.3)))) {
-      const pulse = 1 + 0.06 * Math.sin(t * 6);
-      tiny.style.transform = `scale(${pulse.toFixed(4)})`;
+    // shot A: breathing focus ring around the tiny caption between her fingers
+    const fr = $('fring');
+    if (show(fr, (t < A1 ? 1 : 0) * E.outCubic(P(t, 0.1, 0.35)))) {
+      const k = 1 + 0.12 * Math.sin(t * 7);
+      fr.style.transform = `translate(-50%,-50%) scale(${k.toFixed(4)})`;
     }
-    // grow → land → hold → exit
-    const tt = $('ttl');
-    if (t < TS) { show(tt, 0); }
-    else {
-      const p = E.outExpo(P(t, TS, TL - TS));
-      const s = lerp(0.13, 1, p) * (1 + 0.07 * bell(P(t, TL - 0.02, 0.3)));
-      const dx = (570 - 540) * (1 - p), dy = (1090 - 420) * (1 - p);
-      const ex = E.inCubic(P(t, TOUT, 0.35));
-      show(tt, 1 - ex);
-      tt.style.transform = `translate(${dx.toFixed(1)}px, ${(dy - 60 * ex).toFixed(1)}px) scale(${(s * (1 - 0.1 * ex)).toFixed(4)})`;
-      tt.style.transformOrigin = '540px 120px';
-      const bl = 9 * (1 - p) + 8 * ex;
-      tt.style.filter = bl > 0.05 ? `blur(${bl.toFixed(2)}px)` : 'none';
-    }
-    $('speed').style.opacity = (0.75 * bell(P(t, TL - 0.08, 0.5))).toFixed(3);
-    $('hflash').style.opacity = (0.7 * Math.exp(-Math.max(0, t - TL) * 6) * (t >= TL ? 1 : 0)).toFixed(3);
+    // shot B: her own title types in — add speed lines + flash
+    $('speed').style.opacity = (0.7 * bell(P(t, B0 - 0.05, 0.55)) + 0.75 * bell(P(t, TL - 0.08, 0.5))).toFixed(3);
+    const f1 = t >= B0 + 0.3 ? 0.55 * Math.exp(-(t - B0 - 0.3) * 7) : 0;
+    const f2 = t >= TL ? 0.7 * Math.exp(-(t - TL) * 6) : 0;
+    $('hflash').style.opacity = (f1 + f2).toFixed(3);
+    // our matched title takes over at the cut
+    if (t < TA || t > TOUT + 0.4) { show(MT, 0); return; }
+    if (!MH) { MT.style.display = ''; MH = MT.offsetHeight; }
+    const cx0 = 527, cy0 = MT_TOP + MH / 2;
+    const S0 = [cx0, cy0, 1], ST = [570, 1085, 0.17], SB = [540, 420, 1.28];
+    let st, bl = 0;
+    if (t < TK) st = S0;
+    else if (t < TS) { const p = E.inOut(P(t, TK, 0.5)); st = S0.map((v, i) => lerp(v, ST[i], p)); bl = 6 * bell(p); }
+    else { const p = E.outExpo(P(t, TS, TL - TS)); st = ST.map((v, i) => lerp(v, SB[i], p)); bl = 9 * (1 - p); st[2] *= 1 + 0.07 * bell(P(t, TL - 0.02, 0.3)); }
+    const ex = E.inCubic(P(t, TOUT, 0.35));
+    show(MT, 1 - ex);
+    MT.style.transformOrigin = `${540 + 13}px ${MH / 2}px`;
+    MT.style.transform = `translate(${(st[0] - cx0).toFixed(1)}px, ${(st[1] - cy0 - 60 * ex).toFixed(1)}px) scale(${(st[2] * (1 - 0.1 * ex)).toFixed(4)})`;
+    const b2 = bl + 8 * ex;
+    MT.style.filter = b2 > 0.05 ? `blur(${b2.toFixed(2)}px)` : 'none';
   }
 
   // =====================================================================

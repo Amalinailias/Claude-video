@@ -4,9 +4,13 @@
   // =====================================================================
   const C = [];
   const q = (tm, name, g) => C.push([+tm.toFixed(3), name, g + 2]);
-  // hook (under her voice)
-  q(0.1, 'glass_tap', -20); q(TS - 1.0, 'riser_short', -17); q(TS - 0.05, 'whoosh_long', -12);
-  q(TL - 0.02, 'shock', -14); q(TL, 'bass_hit', -11); q(TL + 0.02, 'impact', -16); q(TL + 0.05, 'shimmer', -19);
+  // hook
+  q(0.02, 'glass_tap', -19); q(0.3, 'tick', -18); q(0.75, 'tick', -18);
+  q(A1 - 1.0, 'riser_short', -17); q(A1 - 0.12, 'whoosh_long', -12);
+  q(B0 + 0.3, 'bass_hit', -11); q(B0 + 0.32, 'impact', -15); q(B0 + 0.35, 'shimmer', -18);
+  q(TK, 'whoosh_down', -18); q(TK + 0.45, 'pop_lo', -19);
+  q(TS - 0.6, 'riser_short', -19); q(TS, 'whoosh_long', -13);
+  q(TL - 0.02, 'shock', -15); q(TL, 'bass_hit', -12); q(TL + 0.03, 'shimmer', -19);
   q(TOUT, 'whoosh_down', -20);
   // cards
   q(T.c1[0], 'whoosh', -18); q(W(17) - 0.1, 'glass_tap', -19); [18, 20, 24].forEach((i, k) => q(W(i) + (k ? -0.05 : 0.1), 'pop', -19));
