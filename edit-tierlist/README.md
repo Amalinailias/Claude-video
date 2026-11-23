@@ -8,6 +8,6 @@ Pipeline sama seperti `edit-sakit-kritikal/`, dengan tambahan:
 
 ```
 node render.js work/ovl all 30 4 1 && node render.js work/ovlm all 30 4 1 mask && node render.js work/ovlb all 30 4 1 behind
-python3 mix.py work work/ovl/meta.json work/mix.wav
+DENOISE_MODEL=models/rnn/bd.rnnn python3 mix.py work work/ovl/meta.json work/mix.wav   # RNNoise: buang bunyi latar kafe
 SEG_MODEL=models/selfie_multiclass.tflite python3 compose.py work work/ovl work/mix.wav out.mp4 --mask work/ovlm --behind work/ovlb
 ```

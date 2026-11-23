@@ -31,7 +31,13 @@ def save(f, x):
 
 
 # 1) voice: cut with short equal-power crossfades at every joint
-src = {1: load(os.path.join(work, 'v.wav'))}
+# optional AI noise removal on the source voice (RNNoise model, e.g. bd.rnnn) before cutting
+_vsrc = os.path.join(work, 'v.wav')
+if os.environ.get('DENOISE_MODEL'):
+    _dn = os.path.join(work, 'v_denoised.wav')
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', _vsrc, '-af', f"highpass=f=80,arnndn=m={os.environ['DENOISE_MODEL']}", _dn], check=True)
+    _vsrc = _dn
+src = {1: load(_vsrc)}
 segs, _ = build()
 voice = np.zeros(int((TOTAL + 1) * SR), np.float32)
 XF = int(0.012 * SR)
