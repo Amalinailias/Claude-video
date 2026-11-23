@@ -1,0 +1,224 @@
+"""Composites the cut footage (re-framed punch-in zooms from the 4K source) with the motion layer.
+
+usage: python3 compose.py <work_dir> <overlay_dir> <audio.wav> <out.mp4> [--preview|--4k]
+       python3 compose.py <work_dir> --hookbg <out.jpg>
+"""
+import json, math, os, subprocess, sys
+import numpy as np, cv2
+from concurrent.futures import ThreadPoolExecutor
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+work = sys.argv[1]
+data = json.loads(open(os.path.join(HERE, 'gfx/data.js')).read().split('=', 1)[1].rstrip().rstrip(';'))
+segs = data['segments']
+HOOK, TOTAL = data['hook'], data['total']
+HSEGS = []
+BW_END = 0.0
+FPS = 30
+SRC = os.path.join(work, 'p.mov')            # 1080x1920, 30 fps, colour-graded
+FACE = (490.0, 818.0)                        # face centre in 1080x1920 design space
+TARGET = (540.0, 900.0)                      # where the face sits after re-framing
+W = lambda i: data['words'][i]['s']
+
+mode_4k = '--4k' in sys.argv
+preview = '--preview' in sys.argv
+OUTW, OUTH = (2160, 3840) if mode_4k else (1080, 1920)
+DECW, DECH = 1080, 1920   # source is 1080p
+
+
+def matrix(z, face=None, target=None):
+    """design-space transform D' = z (D - FACE) + TARGET, mapped from decode px to output px."""
+    face = face or FACE; target = target or TARGET
+    a = z * OUTW / DECW
+    k = OUTW / 1080.0
+    bx = k * (target[0] - z * face[0])
+    by = k * (target[1] - z * face[1])
+    return np.float32([[a, 0, bx], [0, a, by]])
+
+
+def frame_at(img, z, face=None, target=None):
+    return cv2.warpAffine(img, matrix(z, face, target), (OUTW, OUTH), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+
+
+def grab(t):
+    raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', f'{t:.3f}', '-i', SRC, '-frames:v', '1', '-vf', f'scale={DECW}:{DECH}:flags=lanczos',
+                          '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-'], capture_output=True).stdout
+    return np.frombuffer(raw, np.uint8).reshape(DECH, DECW, 3)
+
+
+if sys.argv[2] == '--hookbg':
+    OUTW, OUTH, DECW, DECH = 1080, 1920, 1620, 2880
+    cv2.imwrite(sys.argv[3], frame_at(grab(segs[0]['src_in']), segs[0]['zoom']), [cv2.IMWRITE_JPEG_QUALITY, 92])
+    sys.exit(0)
+
+ovl, audio, out = sys.argv[2:5]
+MASKDIR = sys.argv[sys.argv.index('--mask') + 1] if '--mask' in sys.argv else None
+BEHIND = sys.argv[sys.argv.index('--behind') + 1] if '--behind' in sys.argv else None
+_seg = None
+_prev = {'m': None, 'n': -9}
+
+
+def person_mask(img, n):
+    """soft person matte (hands, hijab, clothes) via MediaPipe multiclass selfie segmentation, temporally smoothed"""
+    global _seg
+    import mediapipe as mp
+    from mediapipe.tasks import python as mpt
+    from mediapipe.tasks.python import vision
+    if _seg is None:
+        opts = vision.ImageSegmenterOptions(base_options=mpt.BaseOptions(model_asset_path=os.environ['SEG_MODEL']), output_confidence_masks=True)
+        _seg = vision.ImageSegmenter.create_from_options(opts)
+    res = _seg.segment(mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(img[:, :, ::-1])))
+    m = 1.0 - np.squeeze(res.confidence_masks[0].numpy_view()).astype(np.float32)
+    if _prev['m'] is not None and n - _prev['n'] == 1:
+        m = 0.55 * m + 0.45 * _prev['m']
+    _prev['m'], _prev['n'] = m, n
+    k, lab, st, _ = cv2.connectedComponentsWithStats((m > 0.5).astype(np.uint8))
+    if k > 1:
+        big = 1 + np.argmax(st[1:, cv2.CC_STAT_AREA])
+        keep = cv2.dilate((lab == big).astype(np.uint8), np.ones((25, 25), np.uint8)).astype(np.float32)
+        m = m * keep
+    return cv2.GaussianBlur(m, (0, 0), 1.6)[:, :, None]
+meta = json.load(open(os.path.join(ovl, 'meta.json')))
+T = meta['times']
+N = int(math.ceil(TOTAL * FPS))
+if os.environ.get("LIMIT"): N = min(N, int(float(os.environ["LIMIT"]) * FPS))
+yy, xx = np.mgrid[0:OUTH, 0:OUTW].astype(np.float32)
+VIG = (1 - 0.55 * (((xx - OUTW / 2) / (OUTW * 0.62)) ** 2 + ((yy - OUTH / 2) / (OUTH * 0.62)) ** 2)).clip(0.35, 1)
+del yy, xx
+BUMPS = [(T['tierOut'] + 0.2, 0.05), (T['land'], 0.07), (T['yel'][1] + 0.1, 0.05), (T['c6'][0], 0.05), (T['c8'][0], 0.04)]
+
+
+def bump(t):
+    z = 1.0
+    for tb, s in BUMPS:
+        x = t - tb
+        if 0 <= x < 2.5:
+            z += s * (1 - math.exp(-x * 22)) * math.exp(-x * 3.2)
+    return z
+
+
+def film_bw(img, n):
+    """high-contrast black & white with grain, vignette and projector flicker"""
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255
+    g = np.clip((g - 0.5) * 1.25 + 0.5, 0, 1)
+    g = g * g * (3 - 2 * g)  # soft S-curve
+    r = np.random.default_rng(n)
+    flick = 1 + 0.035 * np.sin(n * 2.3) + 0.02 * r.standard_normal()
+    gs = r.standard_normal((OUTH // 3, OUTW // 3)).astype(np.float32)
+    grain = cv2.resize(gs, (OUTW, OUTH), interpolation=cv2.INTER_LINEAR) * 0.05
+    g = (g * flick + grain) * VIG
+    g = np.clip(g, 0, 1)
+    return cv2.cvtColor((g * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
+
+
+class SegReader:
+    def __init__(self, seg):
+        dur = seg['src_out'] - seg['src_in'] + 0.2
+        self.p = subprocess.Popen(['ffmpeg', '-v', 'quiet', '-ss', f"{seg['src_in']:.3f}", '-i', SRC, '-t', f'{dur:.3f}',
+                                   '-vf', f'scale={DECW}:{DECH}:flags=lanczos', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-'],
+                                  stdout=subprocess.PIPE)
+        self.k, self.frame = -1, None
+
+    def get(self, k):
+        while self.k < k:
+            buf = self.p.stdout.read(DECW * DECH * 3)
+            if len(buf) < DECW * DECH * 3:
+                break
+            self.frame = np.frombuffer(buf, np.uint8).reshape(DECH, DECW, 3)
+            self.k += 1
+        return self.frame
+
+    def close(self):
+        self.p.stdout.close(); self.p.wait()
+
+
+hook_still = grab(segs[0]["src_in"])
+last = segs[-1]
+end_still = grab(last['src_out'] - 0.04)
+
+vf = 'scale=720:1280:flags=lanczos,' if preview else ''
+venc = ['-preset', 'medium', '-crf', '22'] if preview else (
+    ['-preset', 'medium', '-crf', '18', '-level:v', '5.1', '-maxrate', '45M', '-bufsize', '90M'] if mode_4k else ['-preset', 'slow', '-crf', '16'])
+enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{OUTW}x{OUTH}', '-r', str(FPS), '-i', '-',
+                        '-i', audio, '-vf', vf + 'format=yuv420p', '-c:v', 'libx264', *venc, '-profile:v', 'high',
+                        '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
+                        '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart', '-shortest', out], stdin=subprocess.PIPE)
+pool = ThreadPoolExecutor(4)
+load_ovl = lambda n: (cv2.imread(os.path.join(ovl, f'f_{n:05d}.png'), cv2.IMREAD_UNCHANGED),
+                      cv2.imread(os.path.join(MASKDIR, f'f_{n:05d}.png'), cv2.IMREAD_UNCHANGED) if MASKDIR else None,
+                      cv2.imread(os.path.join(BEHIND, f'f_{n:05d}.png'), cv2.IMREAD_UNCHANGED) if BEHIND else None)
+pending = {n: pool.submit(load_ovl, n) for n in range(min(N, 12))}
+
+reader, rseg = None, None
+for n in range(N):
+    t = n / FPS
+    fa = None
+    if t < HOOK:
+        base, z = hook_still, segs[0]['zoom']
+    elif t >= last['out_out']:
+        x = t - last['out_out']
+        base, z = end_still, last['zoom'] * 1.025 + 0.02 * x
+        k = int(min(41 * OUTW / 1080, 3 + x * 40 * OUTW / 1080)) | 1
+        base = cv2.GaussianBlur(base, (k, k), 0)
+    else:
+        sg = next(s for s in segs if s['out_in'] - 1e-6 <= t < s['out_out'])
+        if rseg is not sg:
+            if reader:
+                reader.close()
+            reader, rseg = SegReader(sg), sg
+        base = reader.get(int(round((t - sg['out_in']) * FPS)))
+        prog = (t - sg['out_in']) / max(0.01, sg['out_out'] - sg['out_in'])
+        z = sg['zoom'] * (1 + 0.025 * prog)
+        fa = None
+        if sg.get('frame'):
+            fx, fy, zend = sg['frame']
+            e = prog * prog * (3 - 2 * prog)
+            z = sg['zoom'] + (zend - sg['zoom']) * e
+            fa = (fx, fy)
+    if t >= HOOK and fa is not None:
+        frame = frame_at(base, z * bump(t), fa, fa)
+    else:
+        frame = frame_at(base, z * bump(t))
+    if t < BW_END:
+        frame = film_bw(frame, n)
+    o, mk, bh = pending.pop(n).result()
+    # Chromium drops the alpha channel when a frame is fully opaque (tier list, yellow card)
+    if o is not None and o.ndim == 3 and o.shape[2] == 3:
+        o = cv2.cvtColor(o, cv2.COLOR_BGR2BGRA)
+    if bh is not None and bh.shape[2] == 4 and bh[:, :, 3].any():
+        # text behind the subject: draw the text, then put her (person matte) back on top
+        pm = person_mask(frame, n)
+        a = bh[:, :, 3:4].astype(np.float32) * (1 / 255)
+        fb = bh[:, :, :3].astype(np.float32) * a + frame.astype(np.float32) * (1 - a)
+        frame = np.clip(frame.astype(np.float32) * pm + fb * (1 - pm), 0, 255).astype(np.uint8)
+    if mk is not None and mk.shape[2] == 4 and mk[:, :, 3].any():
+        # frosted glass: blur the footage behind every glass panel
+        m = mk[:, :, 3]
+        if m.shape[1] != OUTW:
+            m = cv2.resize(m, (OUTW, OUTH), interpolation=cv2.INTER_LINEAR)
+        rows = np.flatnonzero(m.any(axis=1))
+        r0, r1 = rows[0], rows[-1] + 1
+        small = cv2.resize(frame, (OUTW // 4, OUTH // 4), interpolation=cv2.INTER_AREA)
+        small = cv2.GaussianBlur(small, (0, 0), 6)
+        up = cv2.resize(small, (OUTW, OUTH), interpolation=cv2.INTER_LINEAR)[r0:r1].astype(np.float32)
+        up = up * 1.03 + 6
+        mf = m[r0:r1, :, None].astype(np.float32) * (1 / 255)
+        frame[r0:r1] = np.clip(up * mf + frame[r0:r1].astype(np.float32) * (1 - mf), 0, 255).astype(np.uint8)
+    if n + 12 < N:
+        pending[n + 12] = pool.submit(load_ovl, n + 12)
+    if o is not None and o.shape[2] == 4:
+        rows = np.flatnonzero(o[:, :, 3].any(axis=1))
+        if len(rows):
+            breaks = np.flatnonzero(np.diff(rows) > 1)
+            for r0, r1 in zip(np.r_[rows[0], rows[breaks + 1]], np.r_[rows[breaks], rows[-1]] + 1):
+                ov = o[r0:r1]
+                af = ov[:, :, 3:4].astype(np.float32) * (1 / 255)
+                frame[r0:r1] = (ov[:, :, :3].astype(np.float32) * af + frame[r0:r1].astype(np.float32) * (1 - af) + 0.5).astype(np.uint8)
+    enc.stdin.write(np.ascontiguousarray(frame).tobytes())
+    if n % 300 == 0:
+        print(f'{n}/{N}', flush=True)
+if reader:
+    reader.close()
+enc.stdin.close()
+enc.wait()
+print('done', out)
