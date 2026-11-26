@@ -25,13 +25,14 @@ PS_TARGET = (600.0, 1000.0)          # hook: her face lower-right, stat card top
 N = int(math.ceil(TOTAL * FPS))
 if os.environ.get('LIMIT'):
     N = min(N, int(float(os.environ['LIMIT']) * FPS))
+START = float(os.environ.get('START', '0'))
+N0 = int(round(START * FPS))
 from grade import RefGrade  # noqa
 GR = RefGrade(OUTW, OUTH, os.path.join(HERE, 'grade_ref_lut.npy'), red=(1.3, 1.6))   # matched to the user's reference frame
 WD = lambda i: data['words'][i]['s']
 BUMPS = [(WD(4) - 0.06, 0.05), (WD(12) - 0.05, 0.13), (T['c2'][0] + 0.4, 0.04), (T['t1'][0], 0.05), (T['t2'][0], 0.04),
          (T['f2'][1] - 0.05, 0.05), (T['k1'][0] + 1.6, 0.03), (T['cta'][0], 0.04)]
-PIP = T['pip']
-PIP_S, PIP_C = 0.40, (795.0, 770.0)
+PIPS = [(T['pip'], 0.40, (795.0, 770.0)), (T['proof'], 0.30, (860.0, 880.0))]   # (window, scale, centre)
 _rr = {}
 
 
@@ -46,7 +47,7 @@ def rounded_mask(w, h, r):
     return _rr[key]
 
 
-def pip(frame, bg, t):
+def pip(frame, bg, t, PIP, PIP_S, PIP_C):
     """shrink the video into a rounded card over the infographic background"""
     a = P0(t, PIP[0], 0.5); b = P0(t, PIP[1] - 0.5, 0.5)
     p = sm(a) * (1 - sm(b))
@@ -180,15 +181,15 @@ end_still = grab(last['clip'], last['src_out'] - 0.04)
 vf = 'scale=720:1280:flags=lanczos,' if preview else ''
 venc = ['-preset', 'medium', '-crf', '22'] if preview else ['-preset', 'slow', '-crf', '16']
 enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{OUTW}x{OUTH}', '-r', str(FPS), '-i', '-',
-                        '-i', audio, '-vf', vf + 'format=yuv420p', '-c:v', 'libx264', *venc, '-profile:v', 'high',
+                        '-ss', f'{START:.3f}', '-i', audio, '-vf', vf + 'format=yuv420p', '-c:v', 'libx264', *venc, '-profile:v', 'high',
                         '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
                         '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart', '-shortest', out], stdin=subprocess.PIPE)
 pool = ThreadPoolExecutor(4)
 rd = lambda d, n: cv2.imread(os.path.join(d, f'f_{n:05d}.png'), cv2.IMREAD_UNCHANGED) if d else None
 load = lambda n: (rd(ovl, n), rd(MASKDIR, n), rd(BEHIND, n))
-pending = {n: pool.submit(load, n) for n in range(min(N, 12))}
+pending = {n: pool.submit(load, n) for n in range(N0, min(N, N0 + 12))}
 reader, rseg = None, None
-for n in range(N):
+for n in range(N0, N):
     t = n / FPS
     if t >= last['out_out']:
         x = t - last['out_out']
@@ -211,9 +212,10 @@ for n in range(N):
     o, mk, bh = pending.pop(n).result()
     if n + 12 < N:
         pending[n + 12] = pool.submit(load, n + 12)
-    if PIP[0] <= t <= PIP[1]:
-        bgc = (bh[:, :, :3] if bh.shape[2] == 4 else bh) if (bh is not None and bh.ndim == 3) else None
-        frame = pip(frame, bgc, t)
+    for win, ps, pc in PIPS:
+        if win[0] <= t <= win[1]:
+            bgc = (bh[:, :, :3] if bh.shape[2] == 4 else bh) if (bh is not None and bh.ndim == 3) else None
+            frame = pip(frame, bgc, t, win, ps, pc)
     if mk is not None and mk.ndim == 3 and mk.shape[2] == 4 and mk[:, :, 3].any():
         m = mk[:, :, 3]
         rows = np.flatnonzero(m.any(axis=1)); r0, r1 = rows[0], rows[-1] + 1

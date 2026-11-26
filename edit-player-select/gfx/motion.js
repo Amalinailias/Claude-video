@@ -204,12 +204,31 @@
 
   add(`<div id="full2"><div class="a" id="fa2">Sebab itu…</div><div class="b" id="fb2">PENTING</div></div>`);
 
-  add(`<div class="wc" id="k1">
-    <div class="wk"><span class="ic">${RAW('heart-handshake')}</span>Pilih ejen yang</div>
-    <div class="vs2">
-      <div class="col bad" id="vb"><span class="ic" style="color:#B5AEA8">${RAW('x')}</span><div class="tx" style="text-decoration:line-through;text-decoration-thickness:4px">Hanya tahu jual polisi</div></div>
-      <div class="col good" id="vg"><span class="ic">${RAW('circle-check')}</span><div class="tx">Bantu ketika anda memerlukan</div></div>
+  // proof: real (redacted) WhatsApp chats, shown as a timeline deck next to a PiP of her
+  const PC = [
+    ['c1', 1206, 1220, '10:04 PM', 'Klien masuk wad', [[4.1, 22.6, 44.8, 8.9]], '#D7263D'],
+    ['c2', 1206, 710, '10:17 PM', 'Ejen hubungi hospital', [[29.7, 28.2, 66.0, 19.7], [4.1, 55.5, 63.4, 14.1]], '#D7263D'],
+    ['c3', 1206, 1069, '11:45 PM', 'Hospital percepatkan', [[4.1, 84.7, 74.2, 14.5]], '#D7263D'],
+    ['c4', 1206, 1030, '8:28 AM', 'GL diluluskan ✓', [[33.5, 1.6, 62.0, 12.0], [4.3, 82.1, 67.7, 17.5]], '#2FA36B'],
+  ];
+  const CW = 600;
+  add(`<div id="pf">
+    <div class="abs" id="pft" style="left:60px;top:150px;width:960px;color:var(--ink)">
+      <div class="wk" style="color:#2FA36B"><span class="ic">${RAW('badge-check')}</span>Bukti sebenar</div>
+      <div class="wt" style="margin-top:10px;font-size:50px">Ejen yang <em>ada</em> bila klien perlukan</div>
+      <div class="row" style="margin-top:16px;gap:12px">
+        <span class="pill lt" id="pfb" style="font-size:26px;padding:10px 18px 10px 14px">${IC('x')}<span style="text-decoration:line-through;text-decoration-thickness:3px">Hanya jual polisi</span></span>
+        <span class="pill ok" id="pfg" style="font-size:26px;padding:10px 18px 10px 14px">${IC('circle-check')}Bantu ketika anda memerlukan</span>
+      </div>
     </div>
+    <div id="deck" class="abs" style="left:50px;top:500px;width:${CW}px;height:760px">
+      ${PC.map((c, i) => `<div class="pcard" id="pc${i}" style="width:${CW}px">
+        <div class="ph"><span class="tm">${c[3]}</span><span class="lb">${c[4]}</span></div>
+        <div style="position:relative"><img src="proof/${c[0]}.jpg" style="display:block;width:${CW}px;height:${Math.round(CW * c[2] / c[1])}px">
+          ${c[5].map((h, k) => `<div class="hlb" id="h${i}_${k}" style="left:${h[0]}%;top:${h[1]}%;width:${h[2]}%;height:${h[3]}%;border-color:${c[6]}"></div>`).join('')}
+        </div></div>`).join('')}
+    </div>
+    <div class="abs" id="pfn" style="left:60px;top:1250px;font:600 22px/1.2 'PJS';color:rgba(30,27,34,.55)">Nama klien &amp; hospital dikaburkan untuk privasi</div>
   </div>`);
 
   add(`<div id="cta" class="abs" style="left:0;right:0;top:260px;display:flex;flex-direction:column;align-items:center">
@@ -233,7 +252,9 @@
   T.pip = [W(83) - 0.1, W(114) - 0.2];            // tip 3: video shrinks into a card
   T.t3 = [W(83) + 0.15, W(114) - 0.3];
   T.f2 = [W(114) - 0.15, W(117) - 0.05];          // full-screen 'Sebab itu… PENTING' (hides the camera reach)
-  T.k1 = [W(117) - 0.1, W(133) - 0.1];
+  T.proof = [W(117) - 0.1, W(133) - 0.1];       // proof deck + PiP
+  T.k1 = T.proof;
+  T.pc = [0.45, 1.75, 3.05, 4.3].map(d => T.proof[0] + d);
   T.cta = [W(133) - 0.06, D.total + 1];
   T.end = D.endStart;
 
@@ -271,7 +292,7 @@
       ee($('m4'), t, W(77), 1e9, { dy: 20, sc: 0.1 });
     }
     const t3 = $('t3');
-    $('pipbg').style.display = (t >= T.pip[0] - 0.02 && t <= T.pip[1] + 0.5) ? '' : 'none';
+    $('pipbg').style.display = ((t >= T.pip[0] - 0.02 && t <= T.pip[1] + 0.5) || (t >= T.proof[0] - 0.02 && t <= T.proof[1] + 0.5)) ? '' : 'none';
     if (ee(t3, t, T.t3[0], T.t3[1], { dy: 0, sc: 0, blur: 6 })) {
       const steps = [['s1', W(87)], ['s2', W(91)], ['s3', W(93)], ['s4', W(101)]];
       steps.forEach(([id, ts], i) => {
@@ -290,11 +311,33 @@
       ee($('fa2'), t, T.f2[0] + 0.05, 1e9, { dy: 20, blur: 10 });
       pop($('fb2'), t, W(116) - 0.08, { from: 1.8, d: 0.35 });
     }
-    if (ee($('k1'), t, T.k1[0], T.k1[1])) {
-      ee($('vb'), t, W(123) - 0.1, 1e9, { dy: 20 });
-      pop($('vg'), t, W(128) - 0.05, { from: 0.5 });
+    const pf = $('pf');
+    if (show(pf, t >= T.proof[0] && t < T.proof[1] + 0.3 ? 1 : 0)) {
+      ee($('pft'), t, T.proof[0] + 0.1, T.proof[1] - 0.2, { dy: 20, blur: 8 });
+      ee($('pfn'), t, T.proof[0] + 0.6, T.proof[1] - 0.2, { dy: 6, sc: 0, blur: 3 });
+      pop($('pfb'), t, W(123) - 0.1, { from: 0.5, tout: T.proof[1] - 0.2 });
+      pop($('pfg'), t, W(128) - 0.05, { from: 0.4, tout: T.proof[1] - 0.2 });
       const g = bell(P(t, W(131), 0.8));
-      $('vg').style.boxShadow = `0 14px 30px rgba(215,38,61,.35), 0 0 ${(40 * g).toFixed(0)}px rgba(240,86,106,${(0.7 * g).toFixed(2)})`;
+      $('pfg').style.boxShadow = `0 0 ${(34 * g).toFixed(0)}px rgba(47,163,107,${(0.75 * g).toFixed(2)})`;
+      const n = T.pc.filter(x => t >= x).length;
+      PC.forEach((c, i) => {
+        const el = $('pc' + i), t0 = T.pc[i];
+        if (t < t0 - 0.02 || t > T.proof[1] + 0.25) { el.style.display = 'none'; return; }
+        el.style.display = '';
+        const a = E.outBack(P(t, t0, 0.42)), depth = Math.max(0, n - 1 - i);
+        const rot = (i % 2 ? 3 : -3) * (depth ? 1 : 0.35) * (1 - a) + (depth ? (i % 2 ? 2.5 : -2.5) : 0);
+        const out = E.inCubic(P(t, T.proof[1] - 0.2, 0.25));
+        el.style.opacity = (clamp(P(t, t0, 0.12)) * (1 - out)).toFixed(3);
+        el.style.filter = depth ? `brightness(${(1 - 0.1 * depth).toFixed(3)})` : 'none';
+        el.style.zIndex = String(10 + i);
+        el.style.transform = `translate(${(260 * (1 - a)).toFixed(1)}px, ${(-50 * depth + 40 * (1 - a)).toFixed(1)}px) scale(${(1 - 0.03 * depth).toFixed(3)}) rotate(${(depth ? 0 : rot).toFixed(2)}deg)`;
+        c[5].forEach((h, k) => {
+          const hb = $(`h${i}_${k}`), hp = P(t, t0 + 0.45 + 0.35 * k, 0.3);
+          hb.style.opacity = (hp > 0 ? 1 : 0).toFixed(2);
+          hb.style.transform = `scale(${(1.15 - 0.15 * E.outBack(hp)).toFixed(3)})`;
+          hb.style.boxShadow = `0 0 ${(22 * bell(P(t, t0 + 0.45 + 0.35 * k, 0.7))).toFixed(0)}px ${c[6]}`;
+        });
+      });
     }
     if (ee($('cta'), t, T.cta[0], T.cta[1], { dy: 30 })) {
       [['rb1', 'rp1', W(133)], ['rb2', 'rp2', W(135)]].forEach(([b, r, ts]) => {
@@ -368,7 +411,11 @@
   q(W(105), 'counter', -19); q(W(113), 'ding', -15);
   q(T.pip[1] - 0.05, 'whoosh_down', -18);
   q(T.f2[0], 'whoosh', -15); q(W(116) - 0.08, 'bass_hit', -12); q(W(116) - 0.06, 'impact', -16);
-  q(T.k1[0], 'whoosh_down', -19); q(W(123) - 0.1, 'swipe', -18); q(W(126), 'scratch', -19); q(W(128) - 0.05, 'pop', -14); q(W(128), 'shimmer', -18);
+  q(T.proof[0], 'whoosh_long', -14); q(T.proof[0] + 0.3, 'impact_soft', -19);
+  T.pc.forEach((x, i) => { q(x - 0.05, 'whoosh', -21); q(x + 0.02, i % 2 ? 'notif2' : 'notif', -15); });
+  q(T.pc[3] + 0.45, 'ding', -14); q(T.pc[3] + 0.5, 'chaching', -18);
+  q(W(123) - 0.1, 'swipe', -19); q(W(128) - 0.05, 'pop', -15); q(W(128), 'shimmer', -19);
+  q(T.proof[1] - 0.15, 'whoosh_down', -19);
   q(T.cta[0], 'whoosh', -18); q(W(133), 'tap', -13); q(W(133) + 0.02, 'pop', -16); q(W(135), 'tap', -13); q(W(135) + 0.02, 'pop', -16);
   q(D.endStart - 0.2, 'applause', -17); q(D.endStart - 0.15, 'shimmer', -19);
   window.CUES = C;
@@ -379,7 +426,7 @@
     renderCards(t);
     renderCaps(t);
     if (t >= T.f2[0] && t < T.f2[1]) $('cap').style.display = 'none';
-    $('cap').classList.toggle('dark', t >= T.pip[0] + 0.3 && t <= T.pip[1] - 0.2);
+    $('cap').classList.toggle('dark', (t >= T.pip[0] + 0.3 && t <= T.pip[1] - 0.2) || (t >= T.proof[0] + 0.3 && t <= T.proof[1] - 0.2));
   };
   window.READY = document.fonts.ready.then(() => true);
 })();
