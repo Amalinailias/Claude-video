@@ -529,6 +529,24 @@ LIB.update({'select8': select8, 'move8': move8, 'coin8': coin8, 'levelup8': leve
             'type8': type8, 'error8': error8, 'save8': save8})
 
 
+def alarm(d=1.1):
+    """short two-tone siren"""
+    tt = t_axis(d)
+    f = np.where((tt * 4.5) % 1 < 0.5, 960.0, 770.0)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    x = np.sign(np.sin(ph)) * 0.6 + np.sin(ph) * 0.4
+    x = signal.sosfilt(signal.butter(2, [500, 3500], 'band', fs=SR, output='sos'), x)
+    env = np.minimum(1, tt / 0.05) * np.minimum(1, (d - tt) / 0.25)
+    return reverb(stereo(norm(x * env) * 0.8, np.sin(2 * np.pi * 1.5 * tt) * 0.4), decay=0.6, mix=0.25)
+
+
+def whoosh_up(d=0.35):
+    return whoosh(d, 600, 7000, -0.3, 0.3, peak=0.8)
+
+
+LIB.update({'alarm': alarm, 'whoosh_up': whoosh_up})
+
+
 def render_cues(cues, total):
     """cues: list of (time, name, gain_db). Returns stereo mix."""
     out = np.zeros((int((total + 3) * SR), 2))

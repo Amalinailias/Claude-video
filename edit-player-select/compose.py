@@ -28,7 +28,7 @@ if os.environ.get('LIMIT'):
 from grade import RefGrade  # noqa
 GR = RefGrade(OUTW, OUTH, os.path.join(HERE, 'grade_ref_lut.npy'), red=(1.3, 1.6))   # matched to the user's reference frame
 WD = lambda i: data['words'][i]['s']
-BUMPS = [(WD(4) - 0.06, 0.05), (WD(12) - 0.05, 0.09), (T['c2'][0] + 0.4, 0.04), (T['t1'][0], 0.05), (T['t2'][0], 0.04),
+BUMPS = [(WD(4) - 0.06, 0.05), (WD(12) - 0.05, 0.13), (T['c2'][0] + 0.4, 0.04), (T['t1'][0], 0.05), (T['t2'][0], 0.04),
          (T['f2'][1] - 0.05, 0.05), (T['k1'][0] + 1.6, 0.03), (T['cta'][0], 0.04)]
 PIP = T['pip']
 PIP_S, PIP_C = 0.40, (795.0, 770.0)
@@ -90,6 +90,17 @@ def bump(t):
         if 0 <= x < 2.5:
             z += s * (1 - math.exp(-x * 22)) * math.exp(-x * 3.2)
     return z
+
+
+SHAKE = WD(12) - 0.05
+
+
+def shake(t):
+    x = t - SHAKE
+    if x < 0 or x > 1.0:
+        return 0.0, 0.0
+    a = 22 * math.exp(-x * 4.5)
+    return a * math.sin(x * 57), a * math.cos(x * 43)
 
 
 def frame_at(img, z, face, target):
@@ -192,7 +203,8 @@ for n in range(N):
         prog = (t - sg['out_in']) / max(0.01, sg['out_out'] - sg['out_in'])
         z, face = sg['zoom'] * (1 + 0.025 * prog), sg['face']
         target = TARGET
-    frame = GR(frame_at(base, z * bump(t), face, target))
+    dx, dy = shake(t)
+    frame = GR(frame_at(base, z * bump(t), face, (target[0] + dx, target[1] + dy)))
     if t >= last['out_out']:
         k = int(min(41, 3 + (t - last['out_out']) * 40)) | 1
         frame = cv2.GaussianBlur(frame, (k, k), 0)

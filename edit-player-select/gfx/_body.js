@@ -1,30 +1,91 @@
 
   // =====================================================================
-  // HOOK — simple kinetic words on the footage: BUSY → PANIK → tak tahu nak buat apa?
+  // HOOK — kinetic words + PANIC effects: busy notifications → siren → PANIK (shock lines, !!, sweat, ECG, glitch) → ???
   // =====================================================================
   const HOOK = D.hook;
   const HK_END = D.segments[0].out_out;
+  const HC = [540, 840];                       // her head centre in the hook framing
+  const NL = 18;
+  const shockLines = Array.from({ length: NL }, (_, i) => {
+    const a = (i / NL) * Math.PI * 2 + (i % 2 ? 0.08 : -0.05), r0 = 230 + (i % 3) * 14, r1 = r0 + 90 + (i % 4) * 22;
+    return `<line x1="${(HC[0] + Math.cos(a) * r0).toFixed(1)}" y1="${(HC[1] + Math.sin(a) * r0).toFixed(1)}" x2="${(HC[0] + Math.cos(a) * r1).toFixed(1)}" y2="${(HC[1] + Math.sin(a) * r1).toFixed(1)}"/>`;
+  }).join('');
+  const QS = [[120, 760, -14], [880, 720, 12], [170, 1000, 8], [860, 990, -10], [70, 560, 4]];
+  const NOTES = [['calendar', 'Meeting 9:00 AM', 600, 470, -4], ['message-circle', '12 mesej belum baca', 470, 560, 3], ['clock', 'Deadline hari ni!', 610, 650, -2]];
   add(`<div id="hk">
     <div id="redflash" style="opacity:0"></div>
+    <svg id="shk" width="1080" height="1920" viewBox="0 0 1080 1920" style="position:absolute;inset:0;opacity:0"><g stroke="#1E1B22" stroke-width="10" stroke-linecap="round" style="filter:drop-shadow(0 0 3px rgba(255,255,255,.9))">${shockLines}</g></svg>
+    <svg id="ecg" width="1080" height="200" viewBox="0 0 1080 200" style="position:absolute;left:0;top:1110px;opacity:0;overflow:visible">
+      <path id="ecgp" d="M0 120 L250 120 L280 120 L300 60 L322 180 L345 20 L370 170 L392 120 L520 120 L545 120 L565 50 L588 185 L610 15 L636 175 L660 120 L790 120 L812 120 L832 55 L854 182 L877 18 L902 172 L925 120 L1080 120"
+        fill="none" stroke="#FF3B4E" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2400" stroke-dashoffset="2400" style="filter:drop-shadow(0 0 10px rgba(255,59,78,.9))"/></svg>
+    ${NOTES.map((n, i) => `<div class="pill lt nt" id="nt${i}" style="position:absolute;left:${n[2]}px;top:${n[3]}px;font-size:26px;padding:12px 20px 12px 14px;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.2)">${IC(n[0])}${n[1]}</div>`).join('')}
+    <div id="siren" class="abs" style="left:880px;top:200px;width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 10px 26px rgba(0,0,0,.25)"><span style="width:84px;height:84px;color:#D7263D">${RAW('siren')}</span></div>
     <div class="kw" id="kw1"><span class="ic">${RAW('briefcase')}</span>BUSY</div>
     <div class="kw" id="kw2">PANIK</div>
+    <div class="abs" id="ex" style="left:860px;top:405px;font:800 170px/1 'PJS';color:#FFD23A;-webkit-text-stroke:5px #1E1B22;letter-spacing:-.06em">!!</div>
+    <div class="abs sw" id="sw1" style="left:300px;top:690px;width:96px;height:96px;color:#3AA0FF;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))">${RAW('droplet')}</div>
+    <div class="abs sw" id="sw2" style="left:705px;top:670px;width:80px;height:80px;color:#3AA0FF;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))">${RAW('droplet')}</div>
     <div class="kw" id="kw3">tak tahu nak buat apa<span id="qm" style="display:inline-block">?</span></div>
+    ${QS.map((q, i) => `<div class="abs qq" id="qq${i}" style="left:${q[0]}px;top:${q[1]}px;font:800 ${i === 4 ? 130 : 170}px/1 'PJS';color:${i % 2 ? '#FFD23A' : '#fff'};-webkit-text-stroke:5px #1E1B22;text-shadow:0 6px 20px rgba(0,0,0,.45)">?</div>`).join('')}
   </div>`);
   function renderHook(t) {
     const hk = $('hk');
     if (t > HK_END + 0.3) { hk.style.display = 'none'; return; }
     hk.style.display = '';
-    const out = HK_END - 0.22;
+    const out = HK_END - 0.22, TP = W(12) - 0.05;
     pop($('kw1'), t, W(4) - 0.06, { from: 1.6, d: 0.35, tout: out, dout: 0.2 });
-    const k2 = pop($('kw2'), t, W(12) - 0.05, { from: 2.2, d: 0.32, tout: out, dout: 0.2 });
-    if (k2 && t > W(12)) {
-      const x = t - W(12), sh = 16 * Math.exp(-x * 6) * Math.sin(x * 62);
-      $('kw2').style.transform += ` translateX(${sh.toFixed(1)}px)`;
+    // busy notifications pop in, then scatter on PANIK
+    NOTES.forEach((n, i) => {
+      const el = $('nt' + i);
+      if (pop(el, t, W(4) + 0.18 + 0.22 * i, { from: 0.5, rot: n[4] * 2, d: 0.35 }) && t > TP) {
+        const x = t - TP, dir = i % 2 ? 1 : -1;
+        el.style.transform += ` translate(${(dir * 900 * x * x).toFixed(1)}px, ${(-200 * x + 1400 * x * x).toFixed(1)}px) rotate(${(dir * 160 * x).toFixed(1)}deg)`;
+        el.style.opacity = (parseFloat(el.style.opacity) * Math.max(0, 1 - x * 1.6)).toFixed(3);
+      } else if (t <= TP && t > W(4)) {
+        el.style.transform += ` rotate(${n[4]}deg) translateY(${(4 * Math.sin(t * 3 + i)).toFixed(1)}px)`;
+      }
+    });
+    // siren flashes from 'hospital'
+    const sr = $('siren');
+    if (pop(sr, t, W(10) - 0.05, { from: 0.3, rot: -20, d: 0.35, tout: out, dout: 0.2 })) {
+      const on = Math.floor(t * 6) % 2;
+      sr.style.boxShadow = `0 10px 26px rgba(0,0,0,.25), 0 0 ${on ? 60 : 30}px ${on ? 'rgba(255,40,60,.9)' : 'rgba(60,120,255,.9)'}`;
+      sr.style.transform += ` rotate(${(10 * Math.sin(t * 20)).toFixed(1)}deg)`;
     }
-    $('redflash').style.opacity = (0.9 * Math.exp(-Math.max(0, t - W(12)) * 3.2) * (t >= W(12) - 0.02 ? 1 : 0)).toFixed(3);
+    // PANIK: glitchy RGB-split word, shake, shock lines, !!, sweat, ECG, red pulses
+    const k2 = pop($('kw2'), t, TP, { from: 2.4, d: 0.3, tout: out, dout: 0.2 });
+    if (k2 && t > TP) {
+      const x = t - TP, sh = 18 * Math.exp(-x * 5) * Math.sin(x * 62), g = Math.exp(-x * 3);
+      $('kw2').style.transform += ` translateX(${sh.toFixed(1)}px)`;
+      const j = (Math.sin(t * 91) * 8 * g).toFixed(1);
+      $('kw2').style.textShadow = `${j}px 0 rgba(0,220,255,.85), ${-j}px 0 rgba(255,0,90,.85), 0 6px 26px rgba(0,0,0,.6)`;
+    }
+    const pulse = t >= TP ? (0.9 * Math.exp(-(t - TP) * 3.2) + 0.45 * bell(P(t, TP + 0.55, 0.35)) + 0.3 * bell(P(t, TP + 1.1, 0.35))) : 0;
+    $('redflash').style.opacity = Math.min(1, pulse).toFixed(3);
+    const sk = $('shk');
+    if (show(sk, t >= TP && t < out + 0.1 ? 1 : 0)) {
+      const x = t - TP, s = 0.8 + 0.25 * E.outBack(P(t, TP, 0.25)) + 0.04 * Math.sin(t * 40);
+      sk.style.transformOrigin = `${HC[0]}px ${HC[1]}px`;
+      sk.style.transform = `scale(${s.toFixed(4)}) rotate(${(3 * Math.sin(t * 13)).toFixed(2)}deg)`;
+      sk.style.opacity = ((Math.floor(t * 14) % 3 ? 1 : 0.55) * Math.max(0.0, 1 - Math.max(0, x - 1.3) * 1.5)).toFixed(3);
+    }
+    if (pop($('ex'), t, TP + 0.08, { from: 2.0, rot: 18, d: 0.3, tout: out, dout: 0.2 })) $('ex').style.transform += ` rotate(${(8 * Math.sin(t * 24)).toFixed(1)}deg)`;
+    ['sw1', 'sw2'].forEach((id, i) => {
+      const el = $(id);
+      if (pop(el, t, TP + 0.25 + 0.15 * i, { from: 0.4, d: 0.3, tout: out, dout: 0.2 })) el.style.transform += ` translateY(${(70 * P(t, TP + 0.4 + 0.15 * i, 1.4)).toFixed(1)}px)`;
+    });
+    const ecg = $('ecg');
+    if (show(ecg, t >= TP - 0.05 && t < out + 0.15 ? 1 - E.inCubic(P(t, out, 0.2)) : 0))
+      $('ecgp').setAttribute('stroke-dashoffset', (2400 * (1 - E.inOut(P(t, TP, 1.2)))).toFixed(1));
+    // tak tahu nak buat apa → question marks everywhere
     ee($('kw3'), t, W(14) - 0.08, out, { dy: 26, blur: 12, din: 0.4, dout: 0.2 });
     const qb = bell(P(t, W(18) - 0.05, 0.45));
     $('qm').style.transform = `translateY(${(-26 * qb).toFixed(1)}px) rotate(${(14 * qb).toFixed(1)}deg)`;
+    QS.forEach((q, i) => {
+      const el = $('qq' + i), t0 = W(15) + 0.16 * i;
+      if (pop(el, t, t0, { from: 0.2, rot: q[2] * 3, d: 0.35, tout: out, dout: 0.2 }))
+        el.style.transform += ` rotate(${q[2]}deg) translateY(${(10 * Math.sin((t - t0) * 6 + i)).toFixed(1)}px)`;
+    });
   }
 
   // =====================================================================

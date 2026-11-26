@@ -7,8 +7,15 @@
   // hook
   q(0.0, 'whoosh_down', -20);
   q(W(4) - 0.08, 'pop', -14); q(W(4) - 0.06, 'impact_soft', -18);
-  q(W(12) - 0.06, 'bass_hit', -11); q(W(12) - 0.05, 'glitch', -15); q(W(12), 'heartbeat', -13);
-  q(W(14) - 0.1, 'whoosh', -18); q(W(18) - 0.05, 'blip', -16);
+  [0, 1, 2].forEach(i => q(W(4) + 0.18 + 0.22 * i, i % 2 ? 'notif2' : 'notif', -19));
+  q(W(10) - 0.05, 'alarm', -22);
+  // PANIK: the 'shocked' moment
+  q(W(12) - 0.08, 'whoosh_up', -18);
+  q(W(12) - 0.06, 'shock', -9); q(W(12) - 0.05, 'bass_hit', -11); q(W(12) - 0.04, 'glitch', -15);
+  q(W(12), 'heartbeat', -11); q(W(12) + 0.55, 'heartbeat', -13);
+  q(W(12) + 0.08, 'pop', -16); q(W(12) + 0.1, 'whoosh', -20);
+  [0, 1, 2, 3, 4].forEach(i => q(W(15) + 0.16 * i, 'pop_lo', -19 + (i % 2)));
+  q(W(18) - 0.05, 'blip', -16);
   q(HK_END - 0.15, 'whoosh_long', -15);
   // body
   q(T.c1[0], 'pop', -16); q(W(25) - 0.05, 'ding', -16);

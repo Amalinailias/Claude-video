@@ -56,7 +56,7 @@ for k, idx in enumerate(chunks):
 
 icons = {}
 idir = os.path.join(HERE, 'node_modules/lucide-static/icons')
-for name in ['briefcase', 'siren', 'circle-help', 'message-circle-question', 'receipt', 'hourglass', 'send', 'user-round', 'bell', 'credit-card', 'hospital', 'file-search', 'phone-call', 'siren', 'bed', 'stethoscope', 'map-pin', 'file-text', 'building-2',
+for name in ['droplet', 'calendar', 'message-circle', 'clock', 'triangle-alert', 'briefcase', 'siren', 'circle-help', 'message-circle-question', 'receipt', 'hourglass', 'send', 'user-round', 'bell', 'credit-card', 'hospital', 'file-search', 'phone-call', 'siren', 'bed', 'stethoscope', 'map-pin', 'file-text', 'building-2',
              'circle-check', 'clock', 'timer', 'user-check', 'handshake', 'share-2', 'bookmark', 'save', 'gamepad-2', 'shield-check',
              'wallet', 'calendar-clock', 'arrow-right', 'check', 'x', 'heart-handshake', 'sparkles', 'badge-check', 'zap']:
     p = os.path.join(idir, name + '.svg')
