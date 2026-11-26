@@ -29,6 +29,7 @@ These are standing preferences from the owner of this repo. Follow them for ever
 - Avoid violent words/icons (e.g. "tikam"), references to real people's cases, and labels like "narsistik".
 - No "dijamin"/guaranteed claims; mark example RM figures with * and a "tertakluk pada terma & syarat" note.
 
-## People
-- Naja'a Amalina binti Ilias — **AIA ADVISOR** (name card for her own videos).
-- Don't put a name card on other people until the client confirms their name.
+## Name / branding
+- Name tag: just **"Amalina Ilias"** — no "AIA ADVISOR", no company or job title. Videos are shared publicly and the
+  client wants other agents and clients to repost them, so keep branding neutral.
+- Don't put a name on other people until the client confirms their name.
