@@ -218,6 +218,9 @@
       <div class="rb" id="rb2"><div class="rip" id="rp2"></div>${IC('bookmark')}Save</div>
     </div>
     <div id="ctat" style="margin-top:26px;font:italic 400 64px/1 'ISerif';color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.85),0 1px 3px rgba(0,0,0,.9)">untuk masa hadapan</div>
+    <div id="nmt" style="margin-top:30px;display:inline-flex;align-items:center;gap:14px;padding:14px 30px 14px 16px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 10px 28px rgba(0,0,0,.25)">
+      <span style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#F0566A,#D7263D);display:flex;align-items:center;justify-content:center;color:#fff"><span style="width:30px;height:30px">${RAW('user-round')}</span></span>
+      <span style="font:800 40px/1 'PJS';color:#1E1B22;letter-spacing:-.01em">Amalina Ilias</span></div>
   </div>`);
 
   const T = {};
@@ -301,6 +304,7 @@
         $(r).style.transform = `scale(${(1 + 0.6 * k).toFixed(3)})`; $(r).style.opacity = (k > 0 && k < 1 ? 0.9 * (1 - k) : 0).toFixed(3);
       });
       ee($('ctat'), t, W(137) - 0.1, 1e9, { dy: 16, blur: 8 });
+      pop($('nmt'), t, W(138), { from: 0.5 });
     }
   }
   // ---------------------------------------------------------------- captions
