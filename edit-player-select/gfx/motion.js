@@ -93,8 +93,8 @@
 
   add(`<div id="c2" class="abs" style="left:60px;right:60px;top:160px">
     <div style="display:flex;align-items:flex-end;gap:24px">
-      <div id="c2n" style="font:italic 400 330px/0.78 'ISerif';color:#fff;text-shadow:0 10px 30px rgba(0,0,0,.35)">3</div>
-      <div id="c2t" style="padding-bottom:22px;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,.45)">
+      <div id="c2n" style="font:italic 400 330px/0.78 'ISerif';color:#fff;text-shadow:0 10px 30px rgba(0,0,0,.55)">3</div>
+      <div id="c2t" style="padding-bottom:22px;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.8),0 1px 3px rgba(0,0,0,.8)">
         <div style="font:800 76px/0.95 'PJS';letter-spacing:-.03em">TIPS</div>
         <div style="font:italic 400 52px/1.05 'ISerif'">sebelum masuk<br>hospital</div>
       </div>
@@ -156,7 +156,7 @@
       <div class="rb" id="rb1"><div class="rip" id="rp1"></div>${IC('send')}Share</div>
       <div class="rb" id="rb2"><div class="rip" id="rp2"></div>${IC('bookmark')}Save</div>
     </div>
-    <div id="ctat" style="margin-top:26px;font:italic 400 64px/1 'ISerif';color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.45)">untuk masa hadapan</div>
+    <div id="ctat" style="margin-top:26px;font:italic 400 64px/1 'ISerif';color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.85),0 1px 3px rgba(0,0,0,.9)">untuk masa hadapan</div>
   </div>`);
 
   const T = {};
