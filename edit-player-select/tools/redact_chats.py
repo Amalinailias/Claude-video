@@ -30,6 +30,15 @@ R = {
  's4.png': HEADER + [((372, 712, 822, 772), False, 16),                         # quoted client name
                      ((985, 680, 1150, 990), False, 20)],                       # Guarantee Letter thumbnail
 }
+# the agent's own name (Naja / najaa) — hidden too, at her request
+ME = {
+ 's1.png': [(89, 529, 182, 576)],
+ 's2.png': [(474, 888, 587, 935), (217, 1083, 304, 1130)],
+ 's3.jpg': [(419, 482, 533, 529), (338, 938, 464, 985)],
+ 's4.png': [(89, 421, 222, 468), (430, 797, 536, 833), (650, 1379, 764, 1426), (567, 2057, 692, 2104)],
+}
+for k, v in ME.items():
+    R[k] = R[k] + [((x0 - 6, y0 - 6, x1 + 6, y1 + 6), False, 14) for x0, y0, x1, y1 in v]
 for name, boxes in R.items():
     img = cv2.imread(f'{SRC}/{name}')
     for (x0, y0, x1, y1), rnd, blk in boxes:

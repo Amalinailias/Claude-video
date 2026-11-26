@@ -206,10 +206,9 @@
 
   // proof: real (redacted) WhatsApp chats, shown as a timeline deck next to a PiP of her
   const PC = [
-    ['c1', 1206, 1220, '10:04 PM', 'Klien masuk wad', [[4.1, 22.6, 44.8, 8.9]], '#D7263D'],
-    ['c2', 1206, 710, '10:17 PM', 'Ejen hubungi hospital', [[29.7, 28.2, 66.0, 19.7], [4.1, 55.5, 63.4, 14.1]], '#D7263D'],
-    ['c3', 1206, 1069, '11:45 PM', 'Hospital percepatkan', [[4.1, 84.7, 74.2, 14.5]], '#D7263D'],
-    ['c4', 1206, 1030, '8:28 AM', 'GL diluluskan ✓', [[33.5, 1.6, 62.0, 12.0], [4.3, 82.1, 67.7, 17.5]], '#2FA36B'],
+    ['e1', 1206, 400, '10:04 PM', 'Klien masuk wad', [[3.6, 68.0, 45.8, 29.0]], '#D7263D'],
+    ['e2', 1206, 179, '11:45 PM', 'Klien berterima kasih', [[4.1, 13.0, 74.2, 78.0]], '#D7263D'],
+    ['e3', 1206, 475, '8:29 AM', 'Ejen ambil berat', [[44.8, 0.5, 51.5, 45.0], [3.6, 59.0, 69.0, 40.0]], '#2FA36B'],
   ];
   const CW = 600;
   add(`<div id="pf">
@@ -221,7 +220,7 @@
         <span class="pill ok" id="pfg" style="font-size:26px;padding:10px 18px 10px 14px">${IC('circle-check')}Bantu ketika anda memerlukan</span>
       </div>
     </div>
-    <div id="deck" class="abs" style="left:50px;top:500px;width:${CW}px;height:760px">
+    <div id="deck" class="abs" style="left:50px;top:400px;width:${CW}px;height:760px">
       ${PC.map((c, i) => `<div class="pcard" id="pc${i}" style="width:${CW}px">
         <div class="ph"><span class="tm">${c[3]}</span><span class="lb">${c[4]}</span></div>
         <div style="position:relative"><img src="proof/${c[0]}.jpg" style="display:block;width:${CW}px;height:${Math.round(CW * c[2] / c[1])}px">
@@ -242,6 +241,36 @@
       <span style="font:800 40px/1 'PJS';color:#1E1B22;letter-spacing:-.01em">Amalina Ilias</span></div>
   </div>`);
 
+
+  // per-tip proof strips (real, redacted chats) — shown while she talks about that step
+  const PS = [
+    // id, img h, time, label, top, in, out
+    ['p1a', 320, '10:17 PM', 'Ejen semak dokumen polisi', 1050, W(41) - 0.15, W(46) - 0.12],
+    ['p1b', 390, '8:29 AM', 'Waiting period dah lepas ✓', 1050, W(46) - 0.06, W(52) - 0.15],
+    ['p2a', 360, '10:04 PM', 'Ejen tanya keadaan klien', 1050, W(54) - 0.1, W(68) - 0.15],
+    ['p2b', 320, '10:17 PM', 'Ejen hubungi hospital', 1050, W(74) - 0.1, W(83) - 0.15],
+    ['p3a', 160, '10:51 PM', 'Ejen follow-up laporan perubatan', 1075, W(87) - 0.1, W(93) - 0.12],
+    ['p3b', 165, '11:40 PM', 'Hospital percepatkan proses', 1075, W(93) - 0.06, W(101) - 0.12],
+    ['p3c', 160, '8:28 AM', 'GL diluluskan ✓', 1075, W(101) - 0.06, W(104) - 0.12],
+  ];
+  const SW = 900;
+  PS.forEach(p => add(`<div class="pstrip" id="ps_${p[0]}" style="top:${p[4]}px">
+    <div class="sh"><span class="ok">${IC('badge-check')}BUKTI</span><span class="tm">${p[2]}</span><span class="lb">${p[3]}</span></div>
+    <img src="proof/${p[0]}.jpg" style="display:block;width:${SW}px;height:${Math.round(SW * p[1] / 1206)}px">
+  </div>`));
+  function renderStrips(t) {
+    let low = false;
+    PS.forEach(p => {
+      const el = $('ps_' + p[0]);
+      if (ee(el, t, p[5], p[6], { dy: 40, sc: 0.06, blur: 10, din: 0.38, dout: 0.2 })) {
+        const g = bell(P(t, p[5] + 0.25, 0.9));
+        el.style.boxShadow = `0 20px 50px rgba(20,10,10,.28), 0 0 0 ${(4 * g).toFixed(1)}px rgba(47,163,107,${(0.7 * g).toFixed(2)})`;
+        if (p[4] < 1070) low = true;
+      }
+    });
+    $('cap').classList.toggle('low', low);
+  }
+
   const T = {};
   T.hk = HK_END;
   T.c1 = [W(19) - 0.04, W(27) - 0.12];
@@ -254,7 +283,7 @@
   T.f2 = [W(114) - 0.15, W(117) - 0.05];          // full-screen 'Sebab itu… PENTING' (hides the camera reach)
   T.proof = [W(117) - 0.1, W(133) - 0.1];       // proof deck + PiP
   T.k1 = T.proof;
-  T.pc = [0.45, 1.75, 3.05, 4.3].map(d => T.proof[0] + d);
+  T.pc = [0.45, 1.95, 3.45].map(d => T.proof[0] + d);
   T.cta = [W(133) - 0.06, D.total + 1];
   T.end = D.endStart;
 
@@ -313,10 +342,11 @@
     }
     const pf = $('pf');
     if (show(pf, t >= T.proof[0] && t < T.proof[1] + 0.3 ? 1 : 0)) {
-      ee($('pft'), t, T.proof[0] + 0.1, T.proof[1] - 0.2, { dy: 20, blur: 8 });
-      ee($('pfn'), t, T.proof[0] + 0.6, T.proof[1] - 0.2, { dy: 6, sc: 0, blur: 3 });
-      pop($('pfb'), t, W(123) - 0.1, { from: 0.5, tout: T.proof[1] - 0.2 });
-      pop($('pfg'), t, W(128) - 0.05, { from: 0.4, tout: T.proof[1] - 0.2 });
+      const TO = T.proof[1] - 0.6;
+      ee($('pft'), t, T.proof[0] + 0.1, TO, { dy: 20, blur: 8 });
+      ee($('pfn'), t, T.proof[0] + 0.6, TO, { dy: 6, sc: 0, blur: 3 });
+      pop($('pfb'), t, W(123) - 0.1, { from: 0.5, tout: TO });
+      pop($('pfg'), t, W(128) - 0.05, { from: 0.4, tout: TO });
       const g = bell(P(t, W(131), 0.8));
       $('pfg').style.boxShadow = `0 0 ${(34 * g).toFixed(0)}px rgba(47,163,107,${(0.75 * g).toFixed(2)})`;
       const n = T.pc.filter(x => t >= x).length;
@@ -324,13 +354,14 @@
         const el = $('pc' + i), t0 = T.pc[i];
         if (t < t0 - 0.02 || t > T.proof[1] + 0.25) { el.style.display = 'none'; return; }
         el.style.display = '';
-        const a = E.outBack(P(t, t0, 0.42)), depth = Math.max(0, n - 1 - i);
-        const rot = (i % 2 ? 3 : -3) * (depth ? 1 : 0.35) * (1 - a) + (depth ? (i % 2 ? 2.5 : -2.5) : 0);
-        const out = E.inCubic(P(t, T.proof[1] - 0.2, 0.25));
+        const a = E.outBack(P(t, t0, 0.42));
+        const yoff = PC.slice(0, i).reduce((s, q) => s + Math.round(CW * q[2] / q[1]) + 58 + 18, 0);
+        const rot = (i % 2 ? 2 : -2) * (1 - a);
+        const out = E.inCubic(P(t, TO, 0.25));
         el.style.opacity = (clamp(P(t, t0, 0.12)) * (1 - out)).toFixed(3);
-        el.style.filter = depth ? `brightness(${(1 - 0.1 * depth).toFixed(3)})` : 'none';
+
         el.style.zIndex = String(10 + i);
-        el.style.transform = `translate(${(260 * (1 - a)).toFixed(1)}px, ${(-50 * depth + 40 * (1 - a)).toFixed(1)}px) scale(${(1 - 0.03 * depth).toFixed(3)}) rotate(${(depth ? 0 : rot).toFixed(2)}deg)`;
+        el.style.transform = `translate(${(260 * (1 - a)).toFixed(1)}px, ${(yoff + 30 * (1 - a)).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
         c[5].forEach((h, k) => {
           const hb = $(`h${i}_${k}`), hp = P(t, t0 + 0.45 + 0.35 * k, 0.3);
           hb.style.opacity = (hp > 0 ? 1 : 0).toFixed(2);
@@ -411,9 +442,10 @@
   q(W(105), 'counter', -19); q(W(113), 'ding', -15);
   q(T.pip[1] - 0.05, 'whoosh_down', -18);
   q(T.f2[0], 'whoosh', -15); q(W(116) - 0.08, 'bass_hit', -12); q(W(116) - 0.06, 'impact', -16);
+  PS.forEach(p => { q(p[5] - 0.02, 'whoosh', -22); q(p[5] + 0.08, 'notif', -16); });
   q(T.proof[0], 'whoosh_long', -14); q(T.proof[0] + 0.3, 'impact_soft', -19);
   T.pc.forEach((x, i) => { q(x - 0.05, 'whoosh', -21); q(x + 0.02, i % 2 ? 'notif2' : 'notif', -15); });
-  q(T.pc[3] + 0.45, 'ding', -14); q(T.pc[3] + 0.5, 'chaching', -18);
+  q(T.pc[2] + 0.45, 'ding', -14); q(T.pc[2] + 0.5, 'shimmer', -18);
   q(W(123) - 0.1, 'swipe', -19); q(W(128) - 0.05, 'pop', -15); q(W(128), 'shimmer', -19);
   q(T.proof[1] - 0.15, 'whoosh_down', -19);
   q(T.cta[0], 'whoosh', -18); q(W(133), 'tap', -13); q(W(133) + 0.02, 'pop', -16); q(W(135), 'tap', -13); q(W(135) + 0.02, 'pop', -16);
@@ -425,6 +457,7 @@
     renderHook(t);
     renderCards(t);
     renderCaps(t);
+    renderStrips(t);
     if (t >= T.f2[0] && t < T.f2[1]) $('cap').style.display = 'none';
     $('cap').classList.toggle('dark', (t >= T.pip[0] + 0.3 && t <= T.pip[1] - 0.2) || (t >= T.proof[0] + 0.3 && t <= T.proof[1] - 0.2));
   };

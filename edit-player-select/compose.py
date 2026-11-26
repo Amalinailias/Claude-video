@@ -32,7 +32,7 @@ GR = RefGrade(OUTW, OUTH, os.path.join(HERE, 'grade_ref_lut.npy'), red=(1.3, 1.6
 WD = lambda i: data['words'][i]['s']
 BUMPS = [(WD(4) - 0.06, 0.05), (WD(12) - 0.05, 0.13), (T['c2'][0] + 0.4, 0.04), (T['t1'][0], 0.05), (T['t2'][0], 0.04),
          (T['f2'][1] - 0.05, 0.05), (T['k1'][0] + 1.6, 0.03), (T['cta'][0], 0.04)]
-PIPS = [(T['pip'], 0.40, (795.0, 770.0)), (T['proof'], 0.30, (860.0, 880.0))]   # (window, scale, centre)
+PIPS = [(T['pip'], 0.34, (805.0, 705.0)), (T['proof'], 0.30, (860.0, 880.0))]   # (window, scale, centre)
 _rr = {}
 
 

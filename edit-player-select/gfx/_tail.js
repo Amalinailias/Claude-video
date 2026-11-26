@@ -30,9 +30,10 @@
   q(W(105), 'counter', -19); q(W(113), 'ding', -15);
   q(T.pip[1] - 0.05, 'whoosh_down', -18);
   q(T.f2[0], 'whoosh', -15); q(W(116) - 0.08, 'bass_hit', -12); q(W(116) - 0.06, 'impact', -16);
+  PS.forEach(p => { q(p[5] - 0.02, 'whoosh', -22); q(p[5] + 0.08, 'notif', -16); });
   q(T.proof[0], 'whoosh_long', -14); q(T.proof[0] + 0.3, 'impact_soft', -19);
   T.pc.forEach((x, i) => { q(x - 0.05, 'whoosh', -21); q(x + 0.02, i % 2 ? 'notif2' : 'notif', -15); });
-  q(T.pc[3] + 0.45, 'ding', -14); q(T.pc[3] + 0.5, 'chaching', -18);
+  q(T.pc[2] + 0.45, 'ding', -14); q(T.pc[2] + 0.5, 'shimmer', -18);
   q(W(123) - 0.1, 'swipe', -19); q(W(128) - 0.05, 'pop', -15); q(W(128), 'shimmer', -19);
   q(T.proof[1] - 0.15, 'whoosh_down', -19);
   q(T.cta[0], 'whoosh', -18); q(W(133), 'tap', -13); q(W(133) + 0.02, 'pop', -16); q(W(135), 'tap', -13); q(W(135) + 0.02, 'pop', -16);
@@ -44,6 +45,7 @@
     renderHook(t);
     renderCards(t);
     renderCaps(t);
+    renderStrips(t);
     if (t >= T.f2[0] && t < T.f2[1]) $('cap').style.display = 'none';
     $('cap').classList.toggle('dark', (t >= T.pip[0] + 0.3 && t <= T.pip[1] - 0.2) || (t >= T.proof[0] + 0.3 && t <= T.proof[1] - 0.2));
   };
