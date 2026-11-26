@@ -56,7 +56,7 @@ for k, idx in enumerate(chunks):
 
 icons = {}
 idir = os.path.join(HERE, 'node_modules/lucide-static/icons')
-for name in ['credit-card', 'hospital', 'file-search', 'phone-call', 'siren', 'bed', 'stethoscope', 'map-pin', 'file-text', 'building-2',
+for name in ['briefcase', 'siren', 'circle-help', 'message-circle-question', 'receipt', 'hourglass', 'send', 'user-round', 'bell', 'credit-card', 'hospital', 'file-search', 'phone-call', 'siren', 'bed', 'stethoscope', 'map-pin', 'file-text', 'building-2',
              'circle-check', 'clock', 'timer', 'user-check', 'handshake', 'share-2', 'bookmark', 'save', 'gamepad-2', 'shield-check',
              'wallet', 'calendar-clock', 'arrow-right', 'check', 'x', 'heart-handshake', 'sparkles', 'badge-check', 'zap']:
     p = os.path.join(idir, name + '.svg')
@@ -65,7 +65,7 @@ for name in ['credit-card', 'hospital', 'file-search', 'phone-call', 'siren', 'b
     svg = re.sub(r'\s+', ' ', re.sub(r'<!--.*?-->', '', open(p).read(), flags=re.S).strip())
     icons[name] = svg.replace('width="24"', '').replace('height="24"', '').replace('stroke-width="2"', 'stroke-width="2"')
 end_start = speech_end + 0.05
-data = dict(hook=HOOK, words=W, chunks=CH, icons=icons, endStart=round(end_start, 3), total=round(speech_end + 1.4, 3), segments=segs,
+data = dict(hook=HOOK, words=W, chunks=CH, icons=icons, endStart=round(end_start, 3), total=round(speech_end + 1.0, 3), segments=segs,
             psEnd=segs[0]['out_out'])
 open(out_js, 'w').write('window.DATA = ' + json.dumps(data, ensure_ascii=False) + ';\n')
 print('words', len(W), 'chunks', len(CH), 'total', data['total'], 'psEnd', data['psEnd'])

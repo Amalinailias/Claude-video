@@ -26,7 +26,60 @@ N = int(math.ceil(TOTAL * FPS))
 if os.environ.get('LIMIT'):
     N = min(N, int(float(os.environ['LIMIT']) * FPS))
 GR = Grade(OUTW, OUTH, wb=(0.965, 0.975, 1.06), lift=0.62, glow=0.2, vig=0.2, sat=1.1, teal=0.03, warm=0.03)
-BUMPS = [(PS_END, 0.06), (T['f1'][1] - 0.05, 0.05), (T['t2'][0], 0.04), (T['t3'][0], 0.04), (T['f2'][1] - 0.05, 0.05), (T['s1'][0], 0.04)]
+WD = lambda i: data['words'][i]['s']
+BUMPS = [(WD(4) - 0.06, 0.05), (WD(12) - 0.05, 0.09), (T['c2'][0] + 0.4, 0.04), (T['t1'][0], 0.05), (T['t2'][0], 0.04),
+         (T['f2'][1] - 0.05, 0.05), (T['k1'][0] + 1.6, 0.03), (T['cta'][0], 0.04)]
+PIP = T['pip']
+PIP_S, PIP_C = 0.40, (795.0, 770.0)
+_rr = {}
+
+
+def rounded_mask(w, h, r):
+    key = (w, h, r)
+    if key not in _rr:
+        m = np.zeros((h, w), np.uint8)
+        cv2.rectangle(m, (r, 0), (w - r, h), 255, -1); cv2.rectangle(m, (0, r), (w, h - r), 255, -1)
+        for cx, cy in [(r, r), (w - r - 1, r), (r, h - r - 1), (w - r - 1, h - r - 1)]:
+            cv2.circle(m, (cx, cy), r, 255, -1, lineType=cv2.LINE_AA)
+        _rr[key] = cv2.GaussianBlur(m, (3, 3), 0).astype(np.float32)[..., None] / 255
+    return _rr[key]
+
+
+def pip(frame, bg, t):
+    """shrink the video into a rounded card over the infographic background"""
+    a = P0(t, PIP[0], 0.5); b = P0(t, PIP[1] - 0.5, 0.5)
+    p = sm(a) * (1 - sm(b))
+    if p <= 0.001:
+        return frame
+    s = 1 - (1 - PIP_S) * p
+    cx, cy = 540 + (PIP_C[0] - 540) * p, 960 + (PIP_C[1] - 960) * p
+    w, h = max(2, int(OUTW * s)), max(2, int(OUTH * s))
+    small = cv2.resize(frame, (w, h), interpolation=cv2.INTER_AREA)
+    canvas = (bg.astype(np.float32) * p + cv2.GaussianBlur(frame, (0, 0), 20).astype(np.float32) * (1 - p)) if bg is not None else frame.astype(np.float32)
+    x0, y0 = int(cx - w / 2), int(cy - h / 2)
+    r = int(70 * p) + 2
+    m = rounded_mask(w, h, r)
+    # soft drop shadow
+    sh = np.zeros((OUTH, OUTW), np.float32)
+    sx0, sy0 = max(0, x0 + 10), max(0, y0 + 26)
+    sh[sy0:min(OUTH, sy0 + h), sx0:min(OUTW, sx0 + w)] = m[:min(OUTH, sy0 + h) - sy0, :min(OUTW, sx0 + w) - sx0, 0]
+    sh = cv2.GaussianBlur(sh, (0, 0), 28)[..., None] * 0.35 * p
+    canvas = canvas * (1 - sh)
+    ys, ye, xs, xe = max(0, y0), min(OUTH, y0 + h), max(0, x0), min(OUTW, x0 + w)
+    mm = m[ys - y0:ye - y0, xs - x0:xe - x0]
+    canvas[ys:ye, xs:xe] = small[ys - y0:ye - y0, xs - x0:xe - x0].astype(np.float32) * mm + canvas[ys:ye, xs:xe] * (1 - mm)
+    # thin white border
+    edge = cv2.morphologyEx((m[..., 0] > 0.5).astype(np.uint8), cv2.MORPH_GRADIENT, np.ones((7, 7), np.uint8)).astype(np.float32)[..., None] * p
+    canvas[ys:ye, xs:xe] = canvas[ys:ye, xs:xe] * (1 - edge[ys - y0:ye - y0, xs - x0:xe - x0]) + 255 * edge[ys - y0:ye - y0, xs - x0:xe - x0]
+    return np.clip(canvas, 0, 255).astype(np.uint8)
+
+
+def P0(t, a, d):
+    return min(1.0, max(0.0, (t - a) / d))
+
+
+def sm(x):
+    return x * x * (3 - 2 * x)
 
 
 def bump(t):
@@ -137,7 +190,7 @@ for n in range(N):
         base = reader.get(int(round((t - sg['out_in']) * FPS)))
         prog = (t - sg['out_in']) / max(0.01, sg['out_out'] - sg['out_in'])
         z, face = sg['zoom'] * (1 + 0.025 * prog), sg['face']
-        target = PS_TARGET if sg.get('ps') else TARGET
+        target = TARGET
     frame = GR(frame_at(base, z * bump(t), face, target))
     if t >= last['out_out']:
         k = int(min(41, 3 + (t - last['out_out']) * 40)) | 1
@@ -145,9 +198,9 @@ for n in range(N):
     o, mk, bh = pending.pop(n).result()
     if n + 12 < N:
         pending[n + 12] = pool.submit(load, n + 12)
-    if bh is not None and bh.ndim == 3 and t < PS_END + 0.02:
-        bgc = bh[:, :, :3] if bh.shape[2] == 4 else bh
-        frame = player_select(frame, bgc, n, t)
+    if PIP[0] <= t <= PIP[1]:
+        bgc = (bh[:, :, :3] if bh.shape[2] == 4 else bh) if (bh is not None and bh.ndim == 3) else None
+        frame = pip(frame, bgc, t)
     if mk is not None and mk.ndim == 3 and mk.shape[2] == 4 and mk[:, :, 3].any():
         m = mk[:, :, 3]
         rows = np.flatnonzero(m.any(axis=1)); r0, r1 = rows[0], rows[-1] + 1
