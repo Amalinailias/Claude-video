@@ -90,9 +90,9 @@ if len(sys.argv) > 4:
     for i in range(1, len(act)):
         k = 0.45 if act[i] > sm[i - 1] else 0.022
         sm[i] = sm[i - 1] + k * (act[i] - sm[i - 1])
-    duck_db = -5.0 * np.interp(np.arange(len(v)) / hop, np.arange(len(sm)), sm)
+    duck_db = -7.0 * np.interp(np.arange(len(v)) / hop, np.arange(len(sm)), sm)
     tt = np.arange(len(v)) / SR
-    base_db = -10.8 + 5.0 * np.clip((HOOK - tt) / 0.4, 0, 1)  # hook bed louder (no voice)
+    base_db = -2.0 + 5.0 * np.clip((HOOK - tt) / 0.4, 0, 1)  # hook bed louder (no voice)
     music = mus * (10 ** ((base_db + duck_db) / 20))[:, None]
 save(os.path.join(work, "music_bus.wav"), music)
 mix = np.stack([v, v], axis=1) * 0.98 + fx + music

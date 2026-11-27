@@ -6,7 +6,7 @@ from timeline import build, HOOK  # noqa
 tr = json.load(open(sys.argv[1])); out_js = sys.argv[2]
 segs, speech_end = build()
 raw = {1: [w for s in tr['a1.wav'] for w in s['words']]}
-FX = {'carawan': 'caruman', 'Kak?': 'Kak?'}
+FX = {'carawan': 'caruman', 'Kak?': 'Kak?', 'aksiden.': 'accident.', 'aksiden': 'accident'}
 W = []
 for sg in segs:
     for w in raw[sg['clip']]:
@@ -38,7 +38,7 @@ for i, w in enumerate(W):
 GOLD = {'medical', 'card,', 'card', 'hospital.', 'GL', 'GL.', 'dislocated', 'finger', 'sembuh.', 'tiga', 'sebab', 'admission.', 'outpatient,',
         'polisi', 'aktif,', 'bayar,', 'tempoh', 'menunggu', 'kelayakan', 'kriteria', 'perubatan.', 'caruman', 'bulanan', 'annual', 'coverage',
         'waiting', 'period.', 'Share', 'save', 'cakna', 'First,', 'kedua,', 'ketiga,'}
-CORAL = {'aksiden.', 'decline.', 'decline', 'Kenapa,', 'Kak?', 'tak', 'tidak', 'tiada'}
+CORAL = {'accident.', 'aksiden.', 'decline.', 'decline', 'Kenapa,', 'Kak?', 'tak', 'tidak', 'tiada'}
 chunks, cur = [], []
 for i, w in enumerate(W):
     if cur:

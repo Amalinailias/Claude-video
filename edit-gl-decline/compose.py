@@ -31,6 +31,29 @@ from grade import RefGrade  # noqa
 GR = RefGrade(OUTW, OUTH, os.path.join(HERE, 'grade_ref_lut.npy'), red=(1.3, 1.6))   # matched to the user's reference frame
 if os.environ.get('NOGRADE'):          # client already graded the footage (e.g. DJI export): keep her look as-is
     GR = lambda img: img
+# HDR passthrough: read the ORIGINAL HLG/BT.2020 file, keep its code values untouched (no tone-mapping, no grade),
+# convert only the SDR graphics into HLG (SDR white -> 75% HLG = 203 nit reference white, BT.2408), encode HEVC Main10 HLG.
+HDR_SRC = os.environ.get('HDR_SRC')
+HDR = bool(HDR_SRC)
+if HDR:
+    GR = lambda img: img
+WHITE = 0.75 if HDR else 255.0
+_LIN = ((np.arange(256) / 255.0) ** 2.4).astype(np.float32)
+_M = np.array([[0.6274, 0.3293, 0.0433], [0.0691, 0.9195, 0.0114], [0.0164, 0.0880, 0.8956]], np.float32)   # 709 -> 2020 (RGB)
+_YW = np.array([0.2627, 0.6780, 0.0593], np.float32)
+
+
+def sdr2hlg(bgr):
+    """8-bit sRGB/BT.709 graphics (BGR) -> HLG BT.2020 signal in [0,1] (BGR), display-referred mapping per BT.2408"""
+    rgb = _LIN[bgr][..., ::-1] @ _M.T
+    fd = np.clip(rgb, 0, None) * np.float32(0.203)
+    yd = fd @ _YW
+    e = np.clip(fd * np.power(np.maximum(yd, 1e-6), np.float32(-1 / 6))[..., None], 0, 1)
+    out = np.where(e <= 1 / 12, np.sqrt(3 * e), 0.17883277 * np.log(np.maximum(12 * e - 0.28466892, 1e-6)) + 0.55991073)
+    return np.ascontiguousarray(out[..., ::-1], dtype=np.float32)
+
+
+_HDR_VF = 'fps=30,zscale=matrixin=2020_ncl:rangein=limited:range=full,format=gbrp16le,format=bgr48le'
 WD = lambda i: data['words'][i]['s']
 BUMPS = [tuple(b) for b in T['bumps']]
 PIPS = [(T['pip'], 0.27, (850.0, 445.0))]   # (window, scale, centre): story proof deck
@@ -75,8 +98,8 @@ def pip(frame, bg, t, PIP, PIP_S, PIP_C):
     canvas[ys:ye, xs:xe] = small[ys - y0:ye - y0, xs - x0:xe - x0].astype(np.float32) * mm + canvas[ys:ye, xs:xe] * (1 - mm)
     # thin white border
     edge = cv2.morphologyEx((m[..., 0] > 0.5).astype(np.uint8), cv2.MORPH_GRADIENT, np.ones((7, 7), np.uint8)).astype(np.float32)[..., None] * p
-    canvas[ys:ye, xs:xe] = canvas[ys:ye, xs:xe] * (1 - edge[ys - y0:ye - y0, xs - x0:xe - x0]) + 255 * edge[ys - y0:ye - y0, xs - x0:xe - x0]
-    return np.clip(canvas, 0, 255).astype(np.uint8)
+    canvas[ys:ye, xs:xe] = canvas[ys:ye, xs:xe] * (1 - edge[ys - y0:ye - y0, xs - x0:xe - x0]) + WHITE * edge[ys - y0:ye - y0, xs - x0:xe - x0]
+    return np.clip(canvas, 0, 1).astype(np.float32) if HDR else np.clip(canvas, 0, 255).astype(np.uint8)
 
 
 def P0(t, a, d):
@@ -133,17 +156,22 @@ def frame_at(img, z, face, target):
 class SegReader:
     def __init__(self, seg):
         dur = seg['src_out'] - seg['src_in'] + 0.2
-        src = os.path.join(work, f"p{seg['clip']}.mov")
-        self.p = subprocess.Popen(['ffmpeg', '-v', 'quiet', '-ss', f"{seg['src_in']:.3f}", '-i', src, '-t', f'{dur:.3f}',
-                                   '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-'], stdout=subprocess.PIPE)
+        src = HDR_SRC if HDR else os.path.join(work, f"p{seg['clip']}.mov")
+        vf = ['-vf', _HDR_VF] if HDR else []
+        self.bpp = 6 if HDR else 3
+        self.p = subprocess.Popen(['ffmpeg', '-v', 'quiet', '-ss', f"{seg['src_in']:.3f}", '-i', src, '-t', f'{dur:.3f}', *vf,
+                                   '-f', 'rawvideo', '-pix_fmt', 'bgr48le' if HDR else 'bgr24', '-'], stdout=subprocess.PIPE)
         self.k, self.frame = -1, None
 
     def get(self, k):
         while self.k < k:
-            buf = self.p.stdout.read(DECW * DECH * 3)
-            if len(buf) < DECW * DECH * 3:
+            buf = self.p.stdout.read(DECW * DECH * self.bpp)
+            if len(buf) < DECW * DECH * self.bpp:
                 break
-            self.frame = np.frombuffer(buf, np.uint8).reshape(DECH, DECW, 3)
+            if HDR:
+                self.frame = np.frombuffer(buf, np.uint16).reshape(DECH, DECW, 3).astype(np.float32) * np.float32(1 / 65535)
+            else:
+                self.frame = np.frombuffer(buf, np.uint8).reshape(DECH, DECW, 3)
             self.k += 1
         return self.frame
 
@@ -191,6 +219,10 @@ def player_select(frame, bg, n, t):
 
 
 def grab(clip, t):
+    if HDR:
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', f'{t:.3f}', '-i', HDR_SRC, '-vf', _HDR_VF, '-frames:v', '1',
+                              '-f', 'rawvideo', '-pix_fmt', 'bgr48le', '-'], capture_output=True).stdout
+        return np.frombuffer(raw, np.uint16).reshape(DECH, DECW, 3).astype(np.float32) * np.float32(1 / 65535)
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', f'{t:.3f}', '-i', os.path.join(work, f'p{clip}.mov'), '-frames:v', '1',
                           '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-'], capture_output=True).stdout
     return np.frombuffer(raw, np.uint8).reshape(DECH, DECW, 3)
@@ -200,7 +232,16 @@ last = segs[-1]
 end_still = grab(last['clip'], last['src_out'] - 0.04)
 vf = 'scale=720:1280:flags=lanczos,' if preview else ''
 venc = ['-preset', 'medium', '-crf', '22'] if preview else ['-preset', 'slow', '-crf', '16']
-enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{OUTW}x{OUTH}', '-r', str(FPS), '-i', '-',
+if HDR:
+    zs = 'zscale=w=720:h=1280:f=spline36:' if preview else 'zscale='
+    enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgr48le', '-s', f'{OUTW}x{OUTH}', '-r', str(FPS), '-i', '-',
+                            '-ss', f'{START:.3f}', '-i', audio, '-vf', zs + 'matrix=2020_ncl:range=limited,format=yuv420p10le',
+                            '-c:v', 'libx265', '-preset', 'medium', '-crf', '22' if preview else '17', '-profile:v', 'main10', '-tag:v', 'hvc1',
+                            '-x265-params', 'colorprim=bt2020:transfer=arib-std-b67:colormatrix=bt2020nc:range=limited:log-level=error',
+                            '-colorspace', 'bt2020nc', '-color_primaries', 'bt2020', '-color_trc', 'arib-std-b67', '-color_range', 'tv',
+                            '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart', '-shortest', out], stdin=subprocess.PIPE)
+else:
+    enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{OUTW}x{OUTH}', '-r', str(FPS), '-i', '-',
                         '-ss', f'{START:.3f}', '-i', audio, '-vf', vf + 'format=yuv420p', '-c:v', 'libx264', *venc, '-profile:v', 'high',
                         '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
                         '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart', '-shortest', out], stdin=subprocess.PIPE)
@@ -235,6 +276,8 @@ for n in range(N0, N):
     for win, ps, pc in PIPS:
         if win[0] <= t <= win[1]:
             bgc = (bh[:, :, :3] if bh.shape[2] == 4 else bh) if (bh is not None and bh.ndim == 3) else None
+            if HDR and bgc is not None:
+                bgc = sdr2hlg(np.ascontiguousarray(bgc))
             frame = pip(frame, bgc, t, win, ps, pc)
     if mk is not None and mk.ndim == 3 and mk.shape[2] == 4 and mk[:, :, 3].any():
         m = mk[:, :, 3]
@@ -242,7 +285,7 @@ for n in range(N0, N):
         small = cv2.GaussianBlur(cv2.resize(frame, (OUTW // 4, OUTH // 4), interpolation=cv2.INTER_AREA), (0, 0), 6)
         up = cv2.resize(small, (OUTW, OUTH), interpolation=cv2.INTER_LINEAR)[r0:r1].astype(np.float32) * 0.78
         mf = m[r0:r1, :, None].astype(np.float32) * (1 / 255)
-        frame[r0:r1] = np.clip(up * mf + frame[r0:r1].astype(np.float32) * (1 - mf), 0, 255).astype(np.uint8)
+        frame[r0:r1] = np.clip(up * mf + frame[r0:r1].astype(np.float32) * (1 - mf), 0, WHITE / 0.75 if HDR else 255).astype(frame.dtype)
     if o is not None and o.ndim == 3 and o.shape[2] == 3:
         o = cv2.cvtColor(o, cv2.COLOR_BGR2BGRA)
     if o is not None and o[:, :, 3].any():
@@ -250,7 +293,12 @@ for n in range(N0, N):
         brk = np.flatnonzero(np.diff(rows) > 1)
         for r0, r1 in zip(np.r_[rows[0], rows[brk + 1]], np.r_[rows[brk], rows[-1]] + 1):
             ov = o[r0:r1]; af = ov[:, :, 3:4].astype(np.float32) * (1 / 255)
-            frame[r0:r1] = (ov[:, :, :3].astype(np.float32) * af + frame[r0:r1].astype(np.float32) * (1 - af) + 0.5).astype(np.uint8)
+            if HDR:
+                frame[r0:r1] = sdr2hlg(np.ascontiguousarray(ov[:, :, :3])) * af + frame[r0:r1] * (1 - af)
+            else:
+                frame[r0:r1] = (ov[:, :, :3].astype(np.float32) * af + frame[r0:r1].astype(np.float32) * (1 - af) + 0.5).astype(np.uint8)
+    if HDR:
+        frame = (np.clip(frame, 0, 1) * 65535 + 0.5).astype(np.uint16)
     enc.stdin.write(np.ascontiguousarray(frame).tobytes())
     if n % 300 == 0:
         print(f'{n}/{N}', flush=True)

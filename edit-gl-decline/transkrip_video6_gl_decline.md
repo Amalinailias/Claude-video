@@ -6,7 +6,7 @@
 
 | Masa asal | Teks |
 |---|---|
-| 0:00–0:06 | Anda ada medical card, kemudian anda aksiden. Lepas itu, anda pergi hospital. Tapi, GL decline. |
+| 0:00–0:06 | Anda ada medical card, kemudian anda accident. Lepas itu, anda pergi hospital. Tapi, GL decline. |
 | 0:07–0:08 | Kenapa, Kak? |
 | 0:08–0:12 | ~~So, this story sama macam story I semalam bersama dengan klien saya.~~ |
 | 0:13–0:17 | Klien saya ini mengalami dislocated finger akibat aksiden. |
@@ -31,7 +31,7 @@
 
 | Masa | Bahagian | Grafik & SFX |
 |---|---|---|
-| 0:00–0:07 | **Hook bombastik** | "Anda ada…" kemudian **kad MEDICAL CARD** jatuh dengan kilauan + ✓ Dilindungi. Kad bergegar dengan garisan laju dan bunyi tayar berdecit, lalu **CRASH** pada "aksiden": kilatan putih, kaca retak, letupan komik **AKSIDEN!**, gegaran kamera dan glitch RGB. Kemudian **ambulans** dengan lampu siren merah/biru dan **HOSPITAL**. Pada "Tapi" ada record scratch, muzik senyap dan degupan jantung (**TAPI…**). Seterusnya **surat GL** dengan cop merah **DECLINED** (gegaran, garisan kejutan, !!, peluh), dan akhirnya **KENAPA?** dengan tanda soal melantun |
+| 0:00–0:07 | **Hook bombastik** | "Anda ada…" kemudian **kad MEDICAL CARD** jatuh dengan kilauan + ✓ Dilindungi. Kad bergegar dengan garisan laju dan bunyi tayar berdecit, lalu **CRASH** pada "aksiden": kilatan putih, kaca retak, letupan komik **ACCIDENT!**, gegaran kamera dan glitch RGB. Kemudian **ambulans** dengan lampu siren merah/biru dan **HOSPITAL**. Pada "Tapi" ada record scratch, muzik senyap dan degupan jantung (**TAPI…**). Seterusnya **surat GL** dengan cop merah **DECLINED** (gegaran, garisan kejutan, !!, peluh), dan akhirnya **KENAPA?** dengan tanda soal melantun |
 | 0:07–0:14.6 | Bukti sebenar | Video mengecil ke bingkai (PiP). **X-ray klien** (3:24 PM, "Dislocate"), kemudian **chat dengan klien** (4:22 PM): "So far ok cuma dislocated" dan "Ok. Tpi GL belum approved" diserlahkan. Cip: Doktor sahkan…, Rawatan biasa dah cukup ✓, ✕ GL tak diluluskan |
 | 0:14.5 | 3 sebab | **3 SEBAB** GL anda boleh decline: [01 Masuk wad] [02 Syarat polisi] [03 Kelayakan GL] |
 | 0:17.4 | Sebab 01 | Medical admission (cop ✕ TAK PERLU) vs Rawatan outpatient (✓ Dah settle) |

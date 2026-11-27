@@ -52,7 +52,7 @@
     <svg id="bst" width="1080" height="1920" viewBox="0 0 1080 1920" style="position:absolute;inset:0;opacity:0;overflow:visible">
       <polygon points="${burst(540, 400, 330, 225, 14, 0.1)}" fill="#FFD23A" stroke="#1E1B22" stroke-width="12" stroke-linejoin="round"/>
       <polygon points="${burst(540, 400, 250, 175, 12, 0.35)}" fill="#FF3B4E" stroke="#1E1B22" stroke-width="8" stroke-linejoin="round"/></svg>
-    <div class="abs" style="left:0;right:0;top:325px;display:flex;justify-content:center"><div class="k6" id="kA" style="position:relative;font-size:150px">AKSIDEN!</div></div>
+    <div class="abs" style="left:0;right:0;top:325px;display:flex;justify-content:center"><div class="k6" id="kA" style="position:relative;font-size:138px">ACCIDENT!</div></div>
     <div class="ibx" id="amb" style="left:780px;top:170px;width:210px;height:210px;color:#E0182F">${RAW('ambulance')}</div>
     <div class="abs" style="left:0;right:0;top:420px;display:flex;justify-content:center"><div class="k6" id="kH" style="position:relative;font-size:140px">HOSPITAL</div></div>
     <div class="abs" style="left:0;right:0;top:300px;display:flex;justify-content:center"><div class="k6 yel" id="kT" style="position:relative;font-size:200px">TAPI…</div></div>
