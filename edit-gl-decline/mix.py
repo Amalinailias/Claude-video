@@ -104,7 +104,8 @@ if len(sys.argv) > 4:
         sm[i] = sm[i - 1] + k * (act[i] - sm[i - 1])
     duck_db = -7.0 * np.interp(np.arange(len(v)) / hop, np.arange(len(sm)), sm)
     tt = np.arange(len(v)) / SR
-    base_db = -2.0 + 5.0 * np.clip((HOOK - tt) / 0.4, 0, 1)  # hook bed louder (no voice)
+    MB = float(os.environ.get('MUSIC_BASE_DB', '-2.0'))     # upbeat track is denser: run with MUSIC_BASE_DB=-13
+    base_db = MB + 6.0 * (tt < float(os.environ.get('MUSIC_HOOK_UNTIL', '0')))  # muffled hook bed a bit louder
     music = mus * (10 ** ((base_db + duck_db) / 20))[:, None]
 save(os.path.join(work, "music_bus.wav"), music)
 mix = np.stack([v, v], axis=1) * 0.98 + fx + music

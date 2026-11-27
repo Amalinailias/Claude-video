@@ -603,6 +603,94 @@ def wail(d=1.35):
 LIB['wail'] = wail
 
 
+def _saw_add(f, tt, decay_base=1.5, decay_k=0.9, nh=24):
+    x = np.zeros_like(tt)
+    for k in range(1, nh + 1):
+        if f * k > 16000:
+            break
+        x += np.sin(2 * np.pi * f * k * tt + 0.3 * k) / k * np.exp(-tt * (decay_base + decay_k * k))
+    return x
+
+
+PRE_SHOCK = 0.42   # shock_big: the hit lands this many seconds after the cue starts (reverse swell first)
+
+
+def shock_big():
+    """LOUD dramatic 'shocked' sting: reverse swell -> orchestral-style stab (dim chord) + timpani + sub boom + noise hit"""
+    d = PRE_SHOCK + 2.6
+    n = int(d * SR); out = np.zeros(n)
+    # reverse swell (noise + chord) into the hit
+    pre = int(PRE_SHOCK * SR); tp = np.arange(pre) / SR
+    sw = signal.sosfilt(signal.butter(2, [400, 6000], 'band', fs=SR, output='sos'), rng.standard_normal(pre)) * (tp / PRE_SHOCK) ** 3
+    out[:pre] += sw * 0.5
+    th = np.arange(n - pre) / SR
+    hit = np.zeros(n - pre)
+    for m in (50, 53, 56, 62, 65, 68):                      # D dim-stacked stab (D F Ab | D F Ab)
+        f = 440 * 2 ** ((m - 69) / 12)
+        for det in (-0.08, 0, 0.08):
+            hit += _saw_add(f * 2 ** (det / 12), th, 1.2, 0.55, 20) * 0.22
+    hit *= np.minimum(1, th / 0.004)
+    timp = np.sin(2 * np.pi * np.cumsum(55 + 45 * np.exp(-th * 9)) / SR) * np.exp(-th * 2.2) * 1.4
+    sub = np.sin(2 * np.pi * np.cumsum(38 + 60 * np.exp(-th * 14)) / SR) * np.exp(-th * 2.8) * 1.2
+    nz = signal.sosfilt(signal.butter(2, [800, 9000], 'band', fs=SR, output='sos'), rng.standard_normal(n - pre)) * np.exp(-th * 14) * 0.9
+    hit = np.tanh(1.4 * (hit + timp + sub + nz))
+    out[pre:] += hit
+    return reverb(stereo(norm(out) * 0.98), decay=1.6, mix=0.22, bright=7000)
+
+
+def boom():
+    """deep cinematic boom (sub drop with grit)"""
+    tt = t_axis(1.8)
+    f = 34 + 85 * np.exp(-tt * 10)
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-tt * 2.2)
+    x += 0.35 * np.sin(2 * np.pi * np.cumsum(f * 2) / SR) * np.exp(-tt * 4)
+    x = np.tanh(2.2 * x)
+    x += signal.sosfilt(signal.butter(2, 2500, 'low', fs=SR, output='sos'), rng.standard_normal(len(tt))) * np.exp(-tt * 25) * 0.4
+    return reverb(stereo(norm(x) * 0.95), decay=1.4, mix=0.18, bright=3000)
+
+
+def _bell(f, d=1.4, amp=1.0):
+    tt = t_axis(d)
+    x = (np.sin(2 * np.pi * f * tt) + 0.5 * np.sin(2 * np.pi * f * 2.0 * tt) * np.exp(-tt * 6)
+         + 0.25 * np.sin(2 * np.pi * f * 3.01 * tt) * np.exp(-tt * 9) + 0.12 * np.sin(2 * np.pi * f * 4.2 * tt) * np.exp(-tt * 14))
+    return x * np.minimum(1, tt / 0.002) * np.exp(-tt * 3.2) * amp
+
+
+def count(k):
+    """count-in tick for '1-2-3' (k = 0,1,2): marimba-bell, rising"""
+    f = [784.0, 988.0, 1175.0][k]
+    x = _bell(f, 0.9); x2 = _bell(f * 2, 0.5); x[: len(x2)] += 0.5 * x2
+    tt = t_axis(0.9)
+    x += np.sin(2 * np.pi * np.cumsum(180 * np.exp(-tt * 30) + 90) / SR) * np.exp(-tt * 25) * 0.6
+    return reverb(stereo(norm(x) * 0.8, (k - 1) * 0.4), decay=0.8, mix=0.2)
+
+
+def step(k):
+    """'level-up' step sound for reason k (0,1,2): short riser -> thump + rising two-note chime (+ sparkle on 3)"""
+    pre = 0.22
+    d = pre + 1.4
+    n = int(d * SR); out = np.zeros(n)
+    tp = np.arange(int(pre * SR)) / SR
+    rs = signal.sosfilt(signal.butter(2, [1500, 9000], 'band', fs=SR, output='sos'), rng.standard_normal(len(tp))) * (tp / pre) ** 2 * 0.35
+    out[:len(tp)] += rs
+    base = [523.25, 659.25, 783.99][k]
+    th = np.arange(n - len(tp)) / SR
+    hit = np.sin(2 * np.pi * np.cumsum(60 + 120 * np.exp(-th * 30)) / SR) * np.exp(-th * 12) * 0.9
+    c1 = _bell(base, d - pre)[: len(th)]
+    c2 = np.zeros(len(th)); o = int(0.09 * SR); c2[o:] = _bell(base * 1.5, d - pre)[: len(th) - o]
+    sp = np.zeros(len(th))
+    if k == 2:
+        for j, fj in enumerate((base * 2, base * 2.5, base * 3)):
+            oo = int((0.16 + 0.05 * j) * SR); sp[oo:] += _bell(fj, d - pre, 0.5)[: len(th) - oo]
+    out[len(tp):] += hit + 0.7 * c1 + 0.7 * c2 + sp
+    return reverb(stereo(norm(out) * 0.85), decay=1.1, mix=0.22)
+
+
+STEP_PRE = 0.22
+LIB.update({'shock_big': shock_big, 'boom': boom, 'count1': lambda: count(0), 'count2': lambda: count(1), 'count3': lambda: count(2),
+            'step1': lambda: step(0), 'step2': lambda: step(1), 'step3': lambda: step(2)})
+
+
 def render_cues(cues, total):
     """cues: list of (time, name, gain_db). Returns stereo mix."""
     out = np.zeros((int((total + 3) * SR), 2))

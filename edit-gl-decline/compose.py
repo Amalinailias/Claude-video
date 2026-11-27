@@ -112,9 +112,13 @@ def sm(x):
 
 def bump(t):
     z = 1.0
-    for tb, s in BUMPS:
+    for bp in BUMPS:
+        tb, s = bp[0], bp[1]
         x = t - tb
-        if 0 <= x < 2.5:
+        if len(bp) > 2 and bp[2] == 'g':          # smooth: gaussian zoom centred on the cut (hides the jump, no punch)
+            if abs(x) < 0.6:
+                z += s * math.exp(-(x / 0.16) ** 2)
+        elif 0 <= x < 2.5:
             z += s * (1 - math.exp(-x * 22)) * math.exp(-x * 3.2)
     return z
 

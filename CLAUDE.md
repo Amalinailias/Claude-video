@@ -29,8 +29,18 @@ These are standing preferences from the owner of this repo. Follow them for ever
 - Captions: word-by-word, bold, strong dark shadow so they stay readable on bright footage.
 - Audio: clean background noise with RNNoise (`bd.rnnn`). Music and SFX must be original/synthesised so they are safe on
   IG/TikTok. Never use copyrighted music or the CapCut built-in sounds.
-- Always put a **soft background song** under the video (melodic piano/Rhodes, light rhythm: `edit-gl-decline/music_soft.py`)
-  and make sure it is actually audible: about 10–12 dB under the voice, not 20 dB (`mix.py` base_db ≈ -2, duck ≈ -7).
+- Always put a **background song** under the video, and make it **interesting/upbeat, not soft** (she rejected the soft
+  piano song: "genre xbest… xnk lembut"). Default: `edit-gl-decline/music_hype.py` (original 122 BPM pop-house: claps,
+  pumping bass, pluck stabs, catchy lead; muffled under the hook, hard stop on the twist word, drops synced to the edit).
+  Keep it audible, about 12 dB under the voice (`MUSIC_BASE_DB=-13` for the dense track, duck -7 dB).
+- **Hook "shocked" sound must be LOUD**: use `shock_big` (reverse swell → dramatic stab + timpani + sub) on the reveal word,
+  plus `boom` on the impact moment.
+- **Steps ("3 sebab / 3 langkah / first, second, third")**: every time she counts steps, add matching SFX: `count1-3`
+  on the 1-2-3 overview, and a rising `step1/2/3` level-up sound landing exactly on "first / kedua / ketiga".
+- Step sections must feel **smooth**: one persistent card whose content slides between steps (height eases, progress
+  bar 1-2-3, upcoming rows shown faintly then lit up), and gaussian "smooth zoom" over jump cuts instead of hard punch-ins.
+- Pacing: if a video feels slow, speed everything after the hook to ~1.2x (`SPEED_AFTER_HOOK` in `edl.py`; voice via
+  rubberband, pitch preserved).
 - Kinetic text: write English words in English (e.g. **"ACCIDENT!"**, not "AKSIDEN"), including in the captions.
 
 ## Platform safety (IG/TikTok)

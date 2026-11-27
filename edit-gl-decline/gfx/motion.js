@@ -334,7 +334,8 @@
   // =====================================================================
   // 3 REASONS
   // =====================================================================
-  add(`<div class="wc" id="s3" style="padding:24px 36px 30px">
+  add(`<div class="wc" id="rbg"><div class="rprog" id="rpg">${[1, 2, 3].map(i => `<i><b id="rpb${i}"></b></i>`).join('')}</div></div>`);
+  add(`<div class="rc" id="s3" style="padding:24px 36px 30px">
     <div style="display:flex;align-items:center;gap:28px">
       <div id="s3n" style="font:italic 400 250px/0.78 'ISerif';color:var(--cr)">3</div>
       <div id="s3t"><div style="font:800 92px/0.92 'PJS';letter-spacing:-.04em">SEBAB</div>
@@ -345,7 +346,7 @@
     </div>
   </div>`);
 
-  add(`<div class="wc" id="r1">
+  add(`<div class="rc" id="r1">
     <div style="display:flex;align-items:center;gap:20px"><span class="badge2" id="r1n">01</span><div class="wt" style="margin:0;font-size:52px">Tiada keperluan <em>masuk wad</em></div></div>
     <div class="vs6">
       <div class="col a" id="r1a">${IC('bed')}<div class="tx">Medical admission<small>Masuk wad</small></div>
@@ -355,14 +356,14 @@
     </div>
   </div>`);
 
-  add(`<div class="wc" id="r2">
+  add(`<div class="rc" id="r2">
     <div style="display:flex;align-items:center;gap:20px"><span class="badge2" id="r2n">02</span><div class="wt" style="margin:0;font-size:50px">Polisi tak <em>memenuhi syarat</em></div></div>
     <div class="rowi" id="r2a"><span class="ic">${RAW('shield-alert')}</span><div class="tx">Status polisi</div><span class="xs" id="r2ax">${IC('x')}TAK AKTIF</span></div>
     <div class="rowi" id="r2b"><span class="ic">${RAW('wallet')}</span><div class="tx">Caruman</div><span class="xs" id="r2bx">${IC('x')}TAK BAYAR</span></div>
     <div class="rowi" id="r2c"><span class="ic">${RAW('hourglass')}</span><div class="tx">Tempoh menunggu<div class="prog"><i id="r2cp" style="width:0%"></i></div></div><span class="xs" id="r2cx">${IC('x')}BELUM LEPAS</span></div>
   </div>`);
 
-  add(`<div class="wc" id="r3">
+  add(`<div class="rc" id="r3">
     <div style="display:flex;align-items:center;gap:20px"><span class="badge2" id="r3n">03</span><div class="wt" style="margin:0;font-size:52px">Rawatan tak <em>layak GL</em></div></div>
     <div class="rowi" id="r3a"><span class="ic">${RAW('clipboard-check')}</span><div class="tx">Syarat kelayakan GL<small>Ikut terma &amp; syarat polisi</small></div></div>
     <div class="rowi" id="r3b"><span class="ic">${RAW('hospital')}</span><div class="tx">Kemasukan hospital<small>Kriteria perubatan?</small></div></div>
@@ -408,40 +409,75 @@
   T.t1 = T.r1; T.f2 = T.k2;                          // music: lift at reason 1, break on the 'cakna' card
   const SG = D.segments.map(s => s.out_in);
   T.bumps = [[W(2) - 0.06, 0.04], [TC, 0.13], [W(11) - 0.05, 0.05], [W(12) - 0.03, 0.03], [TD, 0.15], [W(15) - 0.02, 0.07],
-    [SG[3], 0.03], [SG[4], 0.03], [T.s3[0], 0.05], [T.r1[0], 0.05], [T.r2[0], 0.05], [SG[8], 0.04], [T.r3[0], 0.05], [SG[10], 0.04],
+    [SG[3], 0.03], [SG[4], 0.03], [T.s3[0], 0.04], [SG[6], 0.05, 'g'], [SG[7], 0.05, 'g'], [SG[8], 0.05, 'g'], [SG[9], 0.05, 'g'], [SG[10], 0.05, 'g'],
     [W(88) - 0.05, 0.06], [T.k1[0], 0.05], [T.k2[0], 0.04], [W(112) - 0.05, 0.05], [T.cta[0], 0.04]];
   T.shakes = [[TC, 34, 0.9], [TD, 30, 0.8], [W(15) - 0.02, 10, 0.4], [W(88) - 0.05, 12, 0.5]];
   T.glitch = [[TC, 0.3], [TD, 0.28]];
 
+  let RH = null;
+  // checklist row: faint placeholder until spoken, then lights up (keeps the card full, no empty space)
+  function ghost(el, t, ti) {
+    const a = E.outExpo(P(t, ti, 0.45));
+    el.style.display = el.dataset.d || ''; el.style.visibility = '';
+    el.style.opacity = (0.22 + 0.78 * a).toFixed(3);
+    el.style.filter = a < 1 ? `grayscale(${(1 - a).toFixed(2)})` : 'none';
+    el.style.transform = `translateX(${(14 * (1 - a)).toFixed(1)}px) scale(${(0.985 + 0.015 * a).toFixed(4)})`;
+  }
+  // keep layout space while hidden (no card-height jumps when rows pop in)
+  const keep = el => { if (el.style.display === 'none') { el.style.display = el.dataset.d || ''; el.style.visibility = 'hidden'; } else el.style.visibility = ''; };
+  // panel slide: first panel rises in with the card, later panels slide in from the right while the previous slides out left
+  function slideP(el, t, tin, tout, first, last) {
+    const a = first ? E.outExpo(P(t, tin, 0.5)) : E.outCubic(P(t, tin - 0.02, 0.55));
+    const b = last ? E.inCubic(P(t, tout, 0.32)) : E.inOut(P(t, tout - 0.1, 0.42));
+    if (!show(el, a * (1 - b))) return 0;
+    const x = (first ? 0 : 170 * (1 - a)) - (last ? 0 : 170 * b), y = (first ? 30 * (1 - a) : 0) - (last ? 24 * b : 0);
+    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    const bl = (first ? 10 : 6) * (1 - a) + 6 * b;
+    el.style.filter = bl > 0.05 ? `blur(${bl.toFixed(2)}px)` : 'none';
+    return 1;
+  }
   function renderCards(t) {
-    if (ee($('s3'), t, T.s3[0], T.s3[1], { dy: 30 })) {
-      const n = $('s3n'), a = P(t, W(35) - 0.08, 0.45);
-      if (show(n, clamp(a * 4))) n.style.transform = `scale(${lerp(2.4, 1, E.outBack(a)).toFixed(4)})`;
-      ee($('s3t'), t, W(36) - 0.1, 1e9, { dy: 0, sc: 0, blur: 8 });
-      [0, 1, 2].forEach(i => pop($('s3p' + i), t, W(37) + 0.2 * i, { from: 0.4 }));
+    // ---- one persistent card; panels slide through it (smooth First / Second / Third)
+    const PN = [['s3', T.s3], ['r1', T.r1], ['r2', T.r2], ['r3', T.r3]];
+    if (!RH) { RH = PN.map(([id]) => { const el = $(id); el.style.display = ''; return el.offsetHeight; }); }
+    const rbg = $('rbg');
+    if (ee(rbg, t, T.s3[0], T.r3[1], { dy: 30, blur: 8 })) {
+      let h = RH[0];
+      for (let i = 1; i < PN.length; i++) h = lerp(h, RH[i], E.inOut(P(t, PN[i][1][0] - 0.12, 0.55)));
+      rbg.style.height = h.toFixed(1) + 'px';
+      const pg = clamp(P(t, T.r1[0] - 0.2, 0.4));
+      $('rpg').style.opacity = pg.toFixed(3);
+      [T.r1, T.r2, T.r3].forEach((w, k) => { $('rpb' + (k + 1)).style.transform = `scaleX(${E.inOut(P(t, w[0], 0.7)).toFixed(4)})`; });
     }
-    if (ee($('r1'), t, T.r1[0], T.r1[1])) {
-      pop($('r1n'), t, T.r1[0], { from: 2.0, rot: -20, d: 0.45 });
-      ee($('r1a'), t, W(42) - 0.05, 1e9, { dy: 20 });
-      pop($('r1x'), t, W(45) - 0.05, { from: 2.2, rot: -18, d: 0.3 });
+    PN.forEach(([id, w], i) => slideP($(id), t, w[0], w[1], i === 0, i === PN.length - 1));
+    if ($('s3').style.display !== 'none') {
+      const n = $('s3n'), a = P(t, W(35) - 0.08, 0.45);
+      show(n, clamp(a * 4)); keep(n); n.style.transform = `scale(${lerp(2.0, 1, E.outBack(a)).toFixed(4)})`;
+      ee($('s3t'), t, W(36) - 0.1, 1e9, { dy: 0, sc: 0, blur: 8 }); keep($('s3t'));
+      [0, 1, 2].forEach(i => { pop($('s3p' + i), t, W(37) + 0.2 * i, { from: 0.4 }); keep($('s3p' + i)); });
+    }
+    if ($('r1').style.display !== 'none') {
+      pop($('r1n'), t, T.r1[0] + 0.05, { from: 0.5, rot: -10, d: 0.5 });
+      ghost($('r1a'), t, W(42) - 0.05);
+      pop($('r1x'), t, W(45) - 0.05, { from: 2.0, rot: -14, d: 0.32 });
       const ad = P(t, W(45), 0.3);
       $('r1a').style.opacity = (parseFloat($('r1a').style.opacity || 1) * (1 - 0.35 * ad)).toFixed(3);
-      ee($('r1b'), t, W(46) - 0.08, 1e9, { dy: 20 });
+      ghost($('r1b'), t, W(46) - 0.08);
       pop($('r1k'), t, W(50) - 0.05, { from: 0.3, d: 0.4 });
     }
-    if (ee($('r2'), t, T.r2[0], T.r2[1])) {
-      pop($('r2n'), t, T.r2[0], { from: 2.0, rot: -20, d: 0.45 });
+    if ($('r2').style.display !== 'none') {
+      pop($('r2n'), t, T.r2[0] + 0.05, { from: 0.5, rot: -10, d: 0.5 });
       [['r2a', W(61) - 0.12, W(63) - 0.03], ['r2b', W(64) - 0.12, W(66) - 0.03], ['r2c', W(68) - 0.12, W(71) - 0.05]].forEach(([id, ti, tx]) => {
-        ee($(id), t, ti, 1e9, { dy: 18 });
-        pop($(id + 'x'), t, tx, { from: 2.2, rot: -18, d: 0.3 });
+        ghost($(id), t, ti);
+        pop($(id + 'x'), t, tx, { from: 2.0, rot: -14, d: 0.32 });
       });
       const pr = 62 * E.outCubic(P(t, W(68), 0.7)) + (t > W(70) ? 1.5 * Math.sin(t * 30) : 0);
       $('r2cp').style.width = pr.toFixed(1) + '%';
     }
-    if (ee($('r3'), t, T.r3[0], T.r3[1])) {
-      pop($('r3n'), t, T.r3[0], { from: 2.0, rot: -20, d: 0.45 });
-      ee($('r3a'), t, W(79) - 0.12, 1e9, { dy: 18 });
-      ee($('r3b'), t, W(83) - 0.12, 1e9, { dy: 18 });
+    if ($('r3').style.display !== 'none') {
+      pop($('r3n'), t, T.r3[0] + 0.05, { from: 0.5, rot: -10, d: 0.5 });
+      ghost($('r3a'), t, W(79) - 0.12);
+      ghost($('r3b'), t, W(83) - 0.12);
       const s = $('r3s'), a = P(t, W(88) - 0.15, 0.12), x = t - W(88) + 0.03;
       if (show(s, clamp(a * 3))) s.style.transform = `rotate(-9deg) scale(${(a < 1 ? 2.6 - 1.6 * E.inCubic(a) : 1 + 0.06 * Math.exp(-x * 14) * Math.sin(x * 46)).toFixed(4)})`;
     }
@@ -511,7 +547,7 @@
   q(W(3) + 0.12, 'pop', -15); q(W(3) + 0.14, 'ding', -17);
   q(W(4) - 0.02, 'skid', -13); q(W(4) + 0.2, 'riser_short', -20);
   // CRASH
-  q(TC - 0.01, 'impact', -7); q(TC, 'bass_hit', -8); q(TC + 0.01, 'glass', -12); q(TC + 0.03, 'shock', -17); q(TC + 0.02, 'glitch', -16);
+  q(TC - 0.01, 'impact', -7); q(TC, 'boom', -4); q(TC + 0.01, 'glass', -11); q(TC + 0.03, 'shock', -14); q(TC + 0.02, 'glitch', -16);
   // ambulance + HOSPITAL
   q(W(7) + 0.15, 'wail', -15); q(W(7) + 0.22, 'whoosh', -18);
   q(W(11) - 0.07, 'impact_soft', -14); q(W(11) - 0.06, 'pop', -17);
@@ -520,8 +556,8 @@
   q(W(12) + 0.25, 'heartbeat', -9); q(W(13) + 0.08, 'heartbeat', -10);
   // GL → DECLINED stamp
   q(W(13) - 0.14, 'swipe', -14); q(W(13) - 0.1, 'whoosh_up', -19);
-  q(TD - 0.02, 'stamp', -5); q(TD - 0.01, 'bass_hit', -8); q(TD, 'shock', -12); q(TD + 0.01, 'impact', -13); q(TD + 0.02, 'glitch', -15);
-  q(TD + 0.35, 'heartbeat', -10);
+  q(TD - 0.02 - 0.42, 'shock_big', -1); q(TD - 0.02, 'stamp', -6); q(TD, 'boom', -7); q(TD + 0.02, 'glitch', -15);
+  q(TD + 0.55, 'heartbeat', -9);
   // KENAPA ??
   q(W(15) - 0.06, 'whoosh_up', -16); q(W(15) - 0.03, 'pop', -13);
   [0, 1, 2, 3, 4].forEach(i => q(W(15) + 0.1 + 0.11 * i, 'pop_lo', -18 + (i % 2)));
@@ -536,13 +572,13 @@
   q(PIPW[1] - 0.5, 'whoosh_down', -18);
   // ---- 3 REASONS
   q(T.s3[0], 'whoosh', -17); q(W(35) - 0.08, 'impact', -13); q(W(35) - 0.05, 'shimmer', -19);
-  [0, 1, 2].forEach(i => q(W(37) + 0.2 * i, 'pop', -19));
-  q(T.r1[0], 'whoosh', -17); q(T.r1[0] + 0.02, 'pop', -16);
+  [0, 1, 2].forEach(i => q(W(37) + 0.2 * i, 'count' + (i + 1), -9));
+  q(T.r1[0] - 0.08, 'whoosh', -19); q(W(41) - 0.22 - 0.02, 'step1', -6);
   q(W(42) - 0.05, 'swipe', -20); q(W(45) - 0.05, 'stamp_sm', -10); q(W(46) - 0.08, 'swipe', -20); q(W(50) - 0.05, 'ding', -15);
-  q(T.r2[0], 'whoosh', -17); q(T.r2[0] + 0.02, 'pop', -16);
+  q(T.r2[0] - 0.08, 'whoosh', -19); q(W(54) - 0.22 - 0.02, 'step2', -6);
   [[61, 63], [64, 66], [68, 71]].forEach(([a, b]) => { q(W(a) - 0.12, 'pop', -19); q(W(b) - 0.05, 'stamp_sm', -11); });
   q(W(68), 'counter', -21);
-  q(T.r3[0], 'whoosh', -17); q(T.r3[0] + 0.02, 'pop', -16);
+  q(T.r3[0] - 0.08, 'whoosh', -19); q(W(75) - 0.22 - 0.02, 'step3', -6);
   q(W(79) - 0.12, 'pop', -19); q(W(83) - 0.12, 'pop', -19);
   q(W(88) - 0.05, 'stamp', -8); q(W(88) - 0.04, 'bass_hit', -13);
   // ---- TAKEAWAY + CTA

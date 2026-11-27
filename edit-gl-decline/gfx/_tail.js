@@ -9,7 +9,7 @@
   q(W(3) + 0.12, 'pop', -15); q(W(3) + 0.14, 'ding', -17);
   q(W(4) - 0.02, 'skid', -13); q(W(4) + 0.2, 'riser_short', -20);
   // CRASH
-  q(TC - 0.01, 'impact', -7); q(TC, 'bass_hit', -8); q(TC + 0.01, 'glass', -12); q(TC + 0.03, 'shock', -17); q(TC + 0.02, 'glitch', -16);
+  q(TC - 0.01, 'impact', -7); q(TC, 'boom', -4); q(TC + 0.01, 'glass', -11); q(TC + 0.03, 'shock', -14); q(TC + 0.02, 'glitch', -16);
   // ambulance + HOSPITAL
   q(W(7) + 0.15, 'wail', -15); q(W(7) + 0.22, 'whoosh', -18);
   q(W(11) - 0.07, 'impact_soft', -14); q(W(11) - 0.06, 'pop', -17);
@@ -18,8 +18,8 @@
   q(W(12) + 0.25, 'heartbeat', -9); q(W(13) + 0.08, 'heartbeat', -10);
   // GL → DECLINED stamp
   q(W(13) - 0.14, 'swipe', -14); q(W(13) - 0.1, 'whoosh_up', -19);
-  q(TD - 0.02, 'stamp', -5); q(TD - 0.01, 'bass_hit', -8); q(TD, 'shock', -12); q(TD + 0.01, 'impact', -13); q(TD + 0.02, 'glitch', -15);
-  q(TD + 0.35, 'heartbeat', -10);
+  q(TD - 0.02 - 0.42, 'shock_big', -1); q(TD - 0.02, 'stamp', -6); q(TD, 'boom', -7); q(TD + 0.02, 'glitch', -15);
+  q(TD + 0.55, 'heartbeat', -9);
   // KENAPA ??
   q(W(15) - 0.06, 'whoosh_up', -16); q(W(15) - 0.03, 'pop', -13);
   [0, 1, 2, 3, 4].forEach(i => q(W(15) + 0.1 + 0.11 * i, 'pop_lo', -18 + (i % 2)));
@@ -34,13 +34,13 @@
   q(PIPW[1] - 0.5, 'whoosh_down', -18);
   // ---- 3 REASONS
   q(T.s3[0], 'whoosh', -17); q(W(35) - 0.08, 'impact', -13); q(W(35) - 0.05, 'shimmer', -19);
-  [0, 1, 2].forEach(i => q(W(37) + 0.2 * i, 'pop', -19));
-  q(T.r1[0], 'whoosh', -17); q(T.r1[0] + 0.02, 'pop', -16);
+  [0, 1, 2].forEach(i => q(W(37) + 0.2 * i, 'count' + (i + 1), -9));
+  q(T.r1[0] - 0.08, 'whoosh', -19); q(W(41) - 0.22 - 0.02, 'step1', -6);
   q(W(42) - 0.05, 'swipe', -20); q(W(45) - 0.05, 'stamp_sm', -10); q(W(46) - 0.08, 'swipe', -20); q(W(50) - 0.05, 'ding', -15);
-  q(T.r2[0], 'whoosh', -17); q(T.r2[0] + 0.02, 'pop', -16);
+  q(T.r2[0] - 0.08, 'whoosh', -19); q(W(54) - 0.22 - 0.02, 'step2', -6);
   [[61, 63], [64, 66], [68, 71]].forEach(([a, b]) => { q(W(a) - 0.12, 'pop', -19); q(W(b) - 0.05, 'stamp_sm', -11); });
   q(W(68), 'counter', -21);
-  q(T.r3[0], 'whoosh', -17); q(T.r3[0] + 0.02, 'pop', -16);
+  q(T.r3[0] - 0.08, 'whoosh', -19); q(W(75) - 0.22 - 0.02, 'step3', -6);
   q(W(79) - 0.12, 'pop', -19); q(W(83) - 0.12, 'pop', -19);
   q(W(88) - 0.05, 'stamp', -8); q(W(88) - 0.04, 'bass_hit', -13);
   // ---- TAKEAWAY + CTA
