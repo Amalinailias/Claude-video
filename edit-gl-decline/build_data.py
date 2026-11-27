@@ -13,14 +13,14 @@ for sg in segs:
         ov = min(w['e'], sg['src_out']) - max(w['s'], sg['src_in'])
         if ov < min(0.12, 0.4 * (w['e'] - w['s'])):
             continue
-        s0 = sg['out_in'] + max(w['s'], sg['src_in']) - sg['src_in']
-        e0 = sg['out_in'] + min(w['e'], sg['src_out']) - sg['src_in']
+        s0 = sg['out_in'] + (max(w['s'], sg['src_in']) - sg['src_in']) / sg['speed']
+        e0 = sg['out_in'] + (min(w['e'], sg['src_out']) - sg['src_in']) / sg['speed']
         t = FX.get(w['w'].strip(), w['w'].strip())
         W.append(dict(t=t, s=round(s0, 3), e=round(max(e0, s0 + 0.05), 3)))
 W.sort(key=lambda w: w['s'])
 # 'tempoh menunggu tak lepas lagi' (second take) is mis-timed by the transcriber: set it by hand
 sg8 = next(sg for sg in segs if abs(sg['src_in'] - 67.06) < 0.01)
-o8 = lambda ts: round(sg8['out_in'] + ts - sg8['src_in'], 3)
+o8 = lambda ts: round(sg8['out_in'] + (ts - sg8['src_in']) / sg8['speed'], 3)
 W = [w for w in W if not (sg8['out_in'] - 0.01 <= w['s'] < sg8['out_out'])]
 W += [dict(t=t, s=o8(a), e=o8(b)) for t, a, b in [('tempoh', 67.08, 67.50), ('menunggu', 67.52, 67.90), ('tak', 67.92, 68.08), ('lepas', 68.10, 68.44), ('lagi.', 68.46, 68.62)]]
 W.sort(key=lambda w: w['s'])

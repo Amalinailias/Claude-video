@@ -157,7 +157,9 @@ class SegReader:
     def __init__(self, seg):
         dur = seg['src_out'] - seg['src_in'] + 0.2
         src = HDR_SRC if HDR else os.path.join(work, f"p{seg['clip']}.mov")
-        vf = ['-vf', _HDR_VF] if HDR else []
+        sp = seg.get('speed', 1.0)
+        pre = f'setpts=(PTS-STARTPTS)/{sp},' if sp != 1.0 else ''
+        vf = ['-vf', pre + _HDR_VF] if HDR else (['-vf', pre + 'fps=30'] if pre else [])
         self.bpp = 6 if HDR else 3
         self.p = subprocess.Popen(['ffmpeg', '-v', 'quiet', '-ss', f"{seg['src_in']:.3f}", '-i', src, '-t', f'{dur:.3f}', *vf,
                                    '-f', 'rawvideo', '-pix_fmt', 'bgr48le' if HDR else 'bgr24', '-'], stdout=subprocess.PIPE)

@@ -1,6 +1,8 @@
 # Video 6 (GL decline: 3 reasons). (clip, src_in, src_out, zoom, note, opts)
 FA = dict(face=(560, 980))   # framing before the camera was moved (0-118 s)
 FB = dict(face=(520, 1020))  # framing after the move (>125 s)
+SPEED_AFTER_HOOK = 1.2   # client: "selepas hook, cepatkan speed" — segments 2.. play faster
+HOOK_SEGS = 2
 EDL = [
  (1, 0.50, 6.50, 1.30, "Anda ada medical card, kemudian anda aksiden. Lepas itu, anda pergi hospital. Tapi, GL decline.", dict(face=(636, 998))),
  (1, 7.04, 8.00, 1.55, "Kenapa, Kak?", dict(face=(603, 1015))),

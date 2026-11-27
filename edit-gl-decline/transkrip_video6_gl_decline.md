@@ -1,6 +1,6 @@
 # Transkrip & Nota Suntingan: Video 6 (3 Sebab GL Anda Boleh Decline)
 
-**Sumber:** 1 klip (2:42). **Hasil: 0:55.7** (bawah 1 minit)
+**Sumber:** 1 klip (2:42). **Hasil: 0:47.8** (bawah 1 minit; speed 1.2x selepas hook)
 
 ~~Coretan~~ = dibuang
 

@@ -201,7 +201,7 @@
   // =====================================================================
   // STORY (6.96 → 14.5) — video shrinks into a PiP, real (redacted) chat proof
   // =====================================================================
-  const PIPW = [HK_END - 0.06, W(34) + 0.05];
+  const PIPW = [HK_END - 0.06, W(34) + 0.3];
   add(`<div id="pipbg" class="behindonly"><div class="dots"></div></div>`);
   add(`<div id="st6">
     <div class="abs" id="stl" style="left:60px;top:180px;width:620px;color:var(--ink)">
@@ -342,7 +342,7 @@
   const T = {};
   T.hk = HK_END;
   T.pip = PIPW;
-  T.s3 = [W(34) - 0.05, W(41) - 0.12];
+  T.s3 = [W(34) + 0.25, W(41) - 0.12];
   T.r1 = [W(41) - 0.08, W(53) - 0.12];
   T.r2 = [W(53) - 0.08, W(73) - 0.12];
   T.r3 = [W(73) - 0.08, W(90) - 0.12];

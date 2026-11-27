@@ -40,6 +40,16 @@ def _voice(n):
         v = d
     return load(v)
 src = {1: _voice(1)}
+
+
+def stretch(x, sp):
+    """speed up without changing pitch (ffmpeg rubberband, speech-friendly settings)"""
+    a_, b_ = os.path.join(work, '_st_in.wav'), os.path.join(work, '_st_out.wav')
+    save(a_, x)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', a_, '-af', f'rubberband=tempo={sp}:transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:formant=preserved',
+                    '-ar', str(SR), '-ac', '1', b_], check=True)
+    y = load(b_)
+    return y[: int(round(len(x) / sp))] if len(y) > len(x) / sp else y
 segs, _ = build()
 voice = np.zeros(int((TOTAL + 1) * SR), np.float32)
 XF = int(0.012 * SR)
@@ -48,6 +58,8 @@ for s in segs:
         continue
     a, b = int(s['src_in'] * SR), int(s['src_out'] * SR)
     x = src[s['clip']][max(0, a - XF // 2): b + XF // 2].copy()
+    if s.get('speed', 1.0) != 1.0:
+        x = stretch(x, s['speed'])
     ramp = np.sin(np.linspace(0, np.pi / 2, XF)) ** 2
     x[:XF] *= ramp
     x[-XF:] *= ramp[::-1]

@@ -9,6 +9,7 @@
 - SFX baharu disintesis dalam `sfx.py`: `glass`, `skid`, `stamp`, `stamp_sm`, `wail`. Muzik senyap pada "Tapi", masuk semula bila cerita bermula.
 - **Warna asal, tanpa grading (HDR passthrough)**: klien dah grade footage (eksport DJI, HLG/Dolby Vision 8.4). `HDR_SRC=` membaca fail asal
   tanpa tukar warna, grafik ditukar ke HLG (putih SDR = 75 %), dan output HEVC Main10 HLG.
+- **Speed 1.2x selepas hook** (`SPEED_AFTER_HOOK` dalam `edl.py`): video `setpts`, suara `rubberband` (pitch kekal). Hasil 47.8 s.
 - **Lagu lembut** asli `music_soft.py` (80 BPM, piano + Rhodes), kedengaran ~11 dB di bawah suara. Teks "ACCIDENT!" dalam bahasa Inggeris.
 
 ```
