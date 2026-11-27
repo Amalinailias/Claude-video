@@ -367,20 +367,21 @@
     <div style="display:flex;align-items:center;gap:20px"><span class="badge2" id="r3n">03</span><div class="wt" style="margin:0;font-size:52px">Rawatan tak <em>layak GL</em></div></div>
     <div class="rowi" id="r3a"><span class="ic">${RAW('clipboard-check')}</span><div class="tx">Syarat kelayakan GL<small>Ikut terma &amp; syarat polisi</small></div></div>
     <div class="rowi" id="r3b"><span class="ic">${RAW('hospital')}</span><div class="tx">Kemasukan hospital<small>Kriteria perubatan?</small></div></div>
-    <div class="bstamp" id="r3s" style="right:34px;bottom:30px;font-size:62px;padding:10px 22px;border-width:8px">TIDAK LAYAK</div>
+    <div class="rowi" id="r3c"><span class="ic">${RAW('stethoscope')}</span><div class="tx">Doktor</div><span class="xs" id="r3cx">${IC('x')}TAK APPROVE</span></div>
+    <div class="bstamp" id="r3s" style="right:26px;top:168px;font-size:54px;padding:8px 20px;border-width:7px">TIDAK LAYAK</div>
   </div>`);
 
   // =====================================================================
   // TAKEAWAY + CTA
   // =====================================================================
-  add(`<div class="wc" id="k1">
+  add(`<div class="rc" id="k1">
     <div class="wk"><span class="ic">${RAW('lightbulb')}</span>Ingat</div>
     <div class="wt" style="font-size:52px">Jangan tengok medical card <em>hanya</em> pada…</div>
     <div class="rowi" id="k1a" style="position:relative"><span class="ic">${RAW('wallet')}</span><div class="tx">Caruman bulanan</div><div class="strk" id="k1as" style="left:90px;right:30px"></div></div>
     <div class="rowi" id="k1b" style="position:relative"><span class="ic">${RAW('shield-check')}</span><div class="tx">Annual coverage</div><div class="strk" id="k1bs" style="left:90px;right:30px"></div></div>
   </div>`);
 
-  add(`<div class="wc" id="k2">
+  add(`<div class="rc" id="k2">
     <div class="wt" style="margin-top:0;font-size:58px">Anda juga perlu <em id="cak" style="display:inline-block">cakna</em></div>
     <div class="wp" id="k2w"><span class="hg" id="k2h">${RAW('hourglass')}</span><div><div class="l1">Waiting period</div><div class="l2">tempoh menunggu polisi anda</div></div></div>
   </div>`);
@@ -393,6 +394,7 @@
     <div id="nmt" style="margin-top:34px;display:inline-flex;align-items:center;gap:14px;padding:14px 30px 14px 16px;border-radius:999px;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.28)">
       <span style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#F0566A,#D7263D);display:flex;align-items:center;justify-content:center;color:#fff"><span style="width:30px;height:30px">${RAW('user-round')}</span></span>
       <span style="font:800 40px/1 'PJS';color:#1E1B22;letter-spacing:-.01em">Amalina Ilias</span></div>
+    <div class="tag6" id="ctat" style="position:relative;margin-top:26px;font-size:54px">for your benefit in the future</div>
   </div>`);
 
   const T = {};
@@ -401,16 +403,16 @@
   T.s3 = [W(34) + 0.25, W(41) - 0.12];
   T.r1 = [W(41) - 0.08, W(53) - 0.12];
   T.r2 = [W(53) - 0.08, W(73) - 0.12];
-  T.r3 = [W(73) - 0.08, W(90) - 0.12];
-  T.k1 = [W(90) - 0.06, W(105) - 0.12];
-  T.k2 = [W(105) - 0.06, W(114) - 0.12];
-  T.cta = [W(114) - 0.06, D.total + 1];
+  T.r3 = [W(73) - 0.08, W(95) - 0.12];
+  T.k1 = [W(95) - 0.06, W(110) - 0.12];
+  T.k2 = [W(110) - 0.06, W(119) - 0.12];
+  T.cta = [W(119) - 0.06, D.total + 1];
   T.end = D.endStart;
   T.t1 = T.r1; T.f2 = T.k2;                          // music: lift at reason 1, break on the 'cakna' card
   const SG = D.segments.map(s => s.out_in);
   T.bumps = [[W(2) - 0.06, 0.04], [TC, 0.13], [W(11) - 0.05, 0.05], [W(12) - 0.03, 0.03], [TD, 0.15], [W(15) - 0.02, 0.07],
     [SG[3], 0.03], [SG[4], 0.03], [T.s3[0], 0.04], [SG[6], 0.05, 'g'], [SG[7], 0.05, 'g'], [SG[8], 0.05, 'g'], [SG[9], 0.05, 'g'], [SG[10], 0.05, 'g'],
-    [W(88) - 0.05, 0.06], [T.k1[0], 0.05], [T.k2[0], 0.04], [W(112) - 0.05, 0.05], [T.cta[0], 0.04]];
+    [W(88) - 0.05, 0.06], [SG[11], 0.06, 'g'], [SG[12], 0.05, 'g'], [W(117) - 0.05, 0.05], [T.cta[0], 0.04]];
   T.shakes = [[TC, 34, 0.9], [TD, 30, 0.8], [W(15) - 0.02, 10, 0.4], [W(88) - 0.05, 12, 0.5]];
   T.glitch = [[TC, 0.3], [TD, 0.28]];
 
@@ -438,14 +440,14 @@
   }
   function renderCards(t) {
     // ---- one persistent card; panels slide through it (smooth First / Second / Third)
-    const PN = [['s3', T.s3], ['r1', T.r1], ['r2', T.r2], ['r3', T.r3]];
+    const PN = [['s3', T.s3], ['r1', T.r1], ['r2', T.r2], ['r3', T.r3], ['k1', T.k1], ['k2', T.k2]];
     if (!RH) { RH = PN.map(([id]) => { const el = $(id); el.style.display = ''; return el.offsetHeight; }); }
     const rbg = $('rbg');
-    if (ee(rbg, t, T.s3[0], T.r3[1], { dy: 30, blur: 8 })) {
+    if (ee(rbg, t, T.s3[0], T.k2[1], { dy: 30, blur: 8 })) {
       let h = RH[0];
       for (let i = 1; i < PN.length; i++) h = lerp(h, RH[i], E.inOut(P(t, PN[i][1][0] - 0.12, 0.55)));
       rbg.style.height = h.toFixed(1) + 'px';
-      const pg = clamp(P(t, T.r1[0] - 0.2, 0.4));
+      const pg = clamp(P(t, T.r1[0] - 0.2, 0.4)) * (1 - clamp(P(t, T.k1[0] - 0.1, 0.4)));
       $('rpg').style.opacity = pg.toFixed(3);
       [T.r1, T.r2, T.r3].forEach((w, k) => { $('rpb' + (k + 1)).style.transform = `scaleX(${E.inOut(P(t, w[0], 0.7)).toFixed(4)})`; });
     }
@@ -478,33 +480,36 @@
       pop($('r3n'), t, T.r3[0] + 0.05, { from: 0.5, rot: -10, d: 0.5 });
       ghost($('r3a'), t, W(79) - 0.12);
       ghost($('r3b'), t, W(83) - 0.12);
+      ghost($('r3c'), t, W(91) - 0.1);
+      pop($('r3cx'), t, W(94) - 0.05, { from: 2.0, rot: -14, d: 0.32 });
       const s = $('r3s'), a = P(t, W(88) - 0.15, 0.12), x = t - W(88) + 0.03;
       if (show(s, clamp(a * 3))) s.style.transform = `rotate(-9deg) scale(${(a < 1 ? 2.6 - 1.6 * E.inCubic(a) : 1 + 0.06 * Math.exp(-x * 14) * Math.sin(x * 46)).toFixed(4)})`;
     }
-    if (ee($('k1'), t, T.k1[0], T.k1[1])) {
-      ee($('k1a'), t, W(99) - 0.12, 1e9, { dy: 18 });
-      ee($('k1b'), t, W(102) - 0.12, 1e9, { dy: 18 });
-      ['k1as', 'k1bs'].forEach((id, i) => { $(id).style.transform = `scaleX(${E.outCubic(P(t, W(104) - 0.05 + 0.12 * i, 0.3)).toFixed(4)})`; });
-      const dm = P(t, W(104) + 0.1, 0.3);
+    if ($('k1').style.display !== 'none') {
+      ghost($('k1a'), t, W(104) - 0.12);
+      ghost($('k1b'), t, W(107) - 0.12);
+      ['k1as', 'k1bs'].forEach((id, i) => { $(id).style.transform = `scaleX(${E.outCubic(P(t, W(109) - 0.05 + 0.12 * i, 0.3)).toFixed(4)})`; });
+      const dm = P(t, W(109) + 0.1, 0.3);
       ['k1a', 'k1b'].forEach(id => { const el = $(id); if (el.style.display !== 'none') el.style.opacity = (parseFloat(el.style.opacity || 1) * (1 - 0.4 * dm)).toFixed(3); });
     }
-    if (ee($('k2'), t, T.k2[0], T.k2[1])) {
-      const c = $('cak'), g = bell(P(t, W(108) - 0.05, 0.5));
+    if ($('k2').style.display !== 'none') {
+      const c = $('cak'), g = bell(P(t, W(113) - 0.05, 0.5));
       c.style.transform = `scale(${(1 + 0.18 * g).toFixed(4)}) rotate(${(-4 * g).toFixed(2)}deg)`;
-      ee($('k2w'), t, W(109) - 0.1, 1e9, { dy: 24, sc: 0.08 });
-      const fl = E.inOut(P(t, W(112) - 0.05, 0.5));
+      ghost($('k2w'), t, W(114) - 0.1);
+      const fl = E.inOut(P(t, W(117) - 0.05, 0.5));
       $('k2h').style.transform = `rotate(${(180 * fl + 6 * Math.sin(t * 5)).toFixed(1)}deg)`;
-      const gw = bell(P(t, W(112), 0.9));
+      const gw = bell(P(t, W(117), 0.9));
       $('k2w').style.boxShadow = `0 16px 34px rgba(200,16,46,.35), 0 0 ${(50 * gw).toFixed(0)}px rgba(255,80,100,${(0.9 * gw).toFixed(2)})`;
     }
     if (ee($('cta'), t, T.cta[0], T.cta[1], { dy: 30 })) {
-      [['rb1', 'rp1', W(114)], ['rb2', 'rp2', W(116)]].forEach(([b, r, ts]) => {
+      [['rb1', 'rp1', W(119)], ['rb2', 'rp2', W(121)]].forEach(([b, r, ts]) => {
         pop($(b), t, ts - 0.15, { from: 0.4 });
         const k = P(t, ts + 0.05, 0.6);
         $(b).style.transform += ` scale(${(1 - 0.12 * bell(P(t, ts, 0.25))).toFixed(3)})`;
         $(r).style.transform = `scale(${(1 + 0.6 * k).toFixed(3)})`; $(r).style.opacity = (k > 0 && k < 1 ? 0.9 * (1 - k) : 0).toFixed(3);
       });
-      pop($('nmt'), t, W(118) - 0.1, { from: 0.5 });
+      pop($('nmt'), t, W(123) - 0.1, { from: 0.5 });
+      ee($('ctat'), t, W(124) - 0.08, 1e9, { dy: 18, blur: 8 });
     }
   }
   // ---------------------------------------------------------------- captions
@@ -580,14 +585,14 @@
   q(W(68), 'counter', -21);
   q(T.r3[0] - 0.08, 'whoosh', -19); q(W(75) - 0.22 - 0.02, 'step3', -6);
   q(W(79) - 0.12, 'pop', -19); q(W(83) - 0.12, 'pop', -19);
-  q(W(88) - 0.05, 'stamp', -8); q(W(88) - 0.04, 'bass_hit', -13);
+  q(W(91) - 0.1, 'pop', -19); q(W(94) - 0.05, 'stamp_sm', -11); q(W(88) - 0.05, 'stamp', -8); q(W(88) - 0.04, 'bass_hit', -13);
   // ---- TAKEAWAY + CTA
   q(T.k1[0], 'whoosh', -16); q(T.k1[0] + 0.05, 'blip', -18);
-  q(W(99) - 0.12, 'pop', -18); q(W(102) - 0.12, 'pop', -18); q(W(104) - 0.05, 'swipe', -14); q(W(104) + 0.07, 'swipe', -17);
-  q(T.k2[0], 'whoosh', -17); q(W(108) - 0.05, 'shimmer', -17); q(W(108) - 0.03, 'pop', -17);
-  q(W(109) - 0.1, 'impact_soft', -16); q(W(112) - 0.05, 'tick', -14); q(W(112) + 0.2, 'ding', -14);
-  q(T.cta[0], 'whoosh', -18); q(W(114), 'tap', -13); q(W(114) + 0.02, 'pop', -16); q(W(116), 'tap', -13); q(W(116) + 0.02, 'pop', -16);
-  q(W(118) - 0.1, 'shimmer', -18); q(D.endStart - 0.1, 'applause', -20);
+  q(W(104) - 0.12, 'pop', -18); q(W(107) - 0.12, 'pop', -18); q(W(109) - 0.05, 'swipe', -14); q(W(109) + 0.07, 'swipe', -17);
+  q(T.k2[0], 'whoosh', -17); q(W(113) - 0.05, 'shimmer', -17); q(W(113) - 0.03, 'pop', -17);
+  q(W(114) - 0.1, 'impact_soft', -16); q(W(117) - 0.05, 'tick', -14); q(W(117) + 0.2, 'ding', -14);
+  q(T.cta[0], 'whoosh', -18); q(W(119), 'tap', -13); q(W(119) + 0.02, 'pop', -16); q(W(121), 'tap', -13); q(W(121) + 0.02, 'pop', -16);
+  q(W(123) - 0.1, 'shimmer', -18); q(D.endStart - 0.1, 'applause', -20);
   window.CUES = C;
   window.TIMES = T;
 

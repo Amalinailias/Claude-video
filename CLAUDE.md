@@ -19,6 +19,10 @@ These are standing preferences from the owner of this repo. Follow them for ever
 ## Workflow
 1. Transcribe (faster-whisper large-v3; use VAD + `condition_on_previous_text=False` if it hallucinates).
 2. Cut to the requested length: remove awkward pauses, retakes and repeated sentences; QA every splice by re-transcribing.
+   **Never cut mid-sentence.** Check what she says right after each cut: if the sentence continues ("…perubatan *ataupun
+   doktor itu tak approve*", "…this post *for your benefit in the future*"), keep it to the real end, and put the cut in the
+   silence after the last word (check the audio envelope, not just Whisper's word times). The last sentence of the video
+   must finish completely, otherwise she says it sounds "tergantung". Only move to the next slide after the sentence ends.
 3. Plan graphics/SFX from the transcript, then **720p preview → wait for approval → final 1080p**.
    When only the look changes, send a short sample clip instead of a full re-render.
 4. Keep moments the client asks to keep (e.g. pulling the camera closer on "Yang pertama").

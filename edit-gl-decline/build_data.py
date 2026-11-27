@@ -13,6 +13,8 @@ for sg in segs:
         ov = min(w['e'], sg['src_out']) - max(w['s'], sg['src_in'])
         if ov < min(0.12, 0.4 * (w['e'] - w['s'])):
             continue
+        if w['s'] > sg['src_out'] - 0.45 and w['e'] > sg['src_out'] + 0.3:   # next take's word leaking over the cut
+            continue
         s0 = sg['out_in'] + (max(w['s'], sg['src_in']) - sg['src_in']) / sg['speed']
         e0 = sg['out_in'] + (min(w['e'], sg['src_out']) - sg['src_in']) / sg['speed']
         t = FX.get(w['w'].strip(), w['w'].strip())
@@ -26,9 +28,8 @@ W += [dict(t=t, s=o8(a), e=o8(b)) for t, a, b in [('tempoh', 67.08, 67.50), ('me
 W.sort(key=lambda w: w['s'])
 for i, w in enumerate(W):
     if w['t'] == 'semata': w['t'] = 'semata.'
-    if w['t'] == 'perubatan': w['t'] = 'perubatan.'
     if w['t'] == 'period' : w['t'] = 'period.'
-    if w['t'] == 'post' : w['t'] = 'post.'
+    if w['t'] == 'future' : w['t'] = 'future.'
 KEEP = {'GL', 'GL.', 'GL?', 'I', 'Kak?'}
 for i, w in enumerate(W):
     start = i == 0 or W[i - 1]['t'].endswith(('.', '?', '!'))
@@ -36,7 +37,7 @@ for i, w in enumerate(W):
     w['t'] = (w['t'][:1].upper() + w['t'][1:]) if start else (w['t'][:1].lower() + w['t'][1:] if not w['t'][:1].isdigit() else w['t'])
 
 GOLD = {'medical', 'card,', 'card', 'hospital.', 'GL', 'GL.', 'dislocated', 'finger', 'sembuh.', 'tiga', 'sebab', 'admission.', 'outpatient,',
-        'polisi', 'aktif,', 'bayar,', 'tempoh', 'menunggu', 'kelayakan', 'kriteria', 'perubatan.', 'caruman', 'bulanan', 'annual', 'coverage',
+        'polisi', 'aktif,', 'bayar,', 'tempoh', 'menunggu', 'kelayakan', 'kriteria', 'perubatan.', 'perubatan', 'approve.', 'future.', 'caruman', 'bulanan', 'annual', 'coverage',
         'waiting', 'period.', 'Share', 'save', 'cakna', 'First,', 'kedua,', 'ketiga,'}
 CORAL = {'accident.', 'aksiden.', 'decline.', 'decline', 'Kenapa,', 'Kak?', 'tak', 'tidak', 'tiada'}
 chunks, cur = [], []

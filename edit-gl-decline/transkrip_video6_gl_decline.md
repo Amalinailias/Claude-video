@@ -1,6 +1,6 @@
 # Transkrip & Nota Suntingan: Video 6 (3 Sebab GL Anda Boleh Decline)
 
-**Sumber:** 1 klip (2:42). **Hasil: 0:47.8** (bawah 1 minit; speed 1.2x selepas hook)
+**Sumber:** 1 klip (2:42). **Hasil: 0:50.8** (bawah 1 minit; speed 1.2x selepas hook)
 
 ~~Coretan~~ = dibuang
 
@@ -19,13 +19,13 @@
 | 0:57–1:05 | Yang kedua, polisi tidak memenuhi syarat perlindungan. Contoh, polisi tak aktif, caruman tak bayar, ataupun ~~mungkin~~ |
 | 1:07–1:09 | tempoh menunggu tak lepas lagi. |
 | 1:09–1:14 | Dan yang ketiga, rawatan tak memenuhi syarat kelayakan GL. Contohnya, ~~rawatan ataupun~~ |
-| 1:15–1:19 | kemasukan hospital itu tidak memenuhi kriteria perubatan. ~~ataupun doktor itu tak approve.~~ |
+| 1:15–1:20 | kemasukan hospital itu tidak memenuhi kriteria perubatan ataupun doktor itu tak approve. *(ayat dihabiskan)* |
 | 1:20–2:08 | ~~(take ulangan sebab ketiga + takeaway, "1, 2, 3", "Jadi… Jadi…")~~ |
 | 2:09–2:14 | Jangan tengok medical card tu based on you punya caruman bulanan ataupun annual coverage semata. |
 | 2:15–2:20 | Anda juga perlu cakna tentang you punya waiting period. |
 | 2:20–2:36 | ~~So, nak tahu waiting period, kita pergi ke next video. So for now, save and share… (take ulangan)~~ |
-| 2:36–2:38 | Share and save this post. |
-| 2:39–2:40 | ~~Assalamualaikum~~ |
+| 2:36–2:40 | Share and save this post for your benefit in the future. *(ayat dihabiskan)* |
+| 2:40 | ~~Assalamualaikum~~ |
 
 ## Struktur
 
@@ -36,7 +36,7 @@
 | 0:14.5 | 3 sebab | **3 SEBAB** GL anda boleh decline: [01 Masuk wad] [02 Syarat polisi] [03 Kelayakan GL] |
 | 0:17.4 | Sebab 01 | Medical admission (cop ✕ TAK PERLU) vs Rawatan outpatient (✓ Dah settle) |
 | 0:24 | Sebab 02 | Status polisi ✕ TAK AKTIF, Caruman ✕ TAK BAYAR, Tempoh menunggu (bar tersekat) ✕ BELUM LEPAS |
-| 0:33.4 | Sebab 03 | Syarat kelayakan GL, Kemasukan hospital, cop besar **TIDAK LAYAK** |
+| 0:33.4 | Sebab 03 | Syarat kelayakan GL, Kemasukan hospital, Doktor ✕ TAK APPROVE, cop besar **TIDAK LAYAK** |
 | 0:42 | Ingat | Jangan tengok medical card hanya pada: ~~Caruman bulanan~~ ~~Annual coverage~~ |
 | 0:47.9 | Cakna | **Waiting period** (jam pasir berpusing) |
 | 0:53 | CTA | Butang Share & Save + **Amalina Ilias** |

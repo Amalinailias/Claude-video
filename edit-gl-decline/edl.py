@@ -14,8 +14,8 @@ EDL = [
  (1, 56.78, 64.54, 1.25, "Yang kedua, polisi tidak memenuhi syarat perlindungan. Contoh, polisi tak aktif, caruman tak bayar, ataupun", dict(face=(603, 982))),
  (1, 67.06, 68.66, 1.25, "tempoh menunggu tak lepas lagi.", dict(face=(627, 979))),
  (1, 68.82, 74.06, 1.25, "Dan yang ketiga, rawatan tak memenuhi syarat kelayakan GL. Contohnya,", dict(face=(587, 1000))),
- (1, 75.17, 78.62, 1.25, "kemasukan hospital itu tidak memenuhi kriteria perubatan.", dict(face=(597, 990))),
+ (1, 75.17, 80.15, 1.25, "kemasukan hospital itu tidak memenuhi kriteria perubatan ataupun doktor itu tak approve.", dict(face=(597, 990))),
  (1, 128.50, 134.32, 1.30, "Jangan tengok medical card tu based on you punya caruman bulanan ataupun annual coverage semata.", dict(face=(584, 995))),
  (1, 135.30, 140.34, 1.30, "Anda juga perlu cakna tentang you punya waiting period.", dict(face=(577, 990))),
- (1, 156.06, 157.62, 1.35, "Share and save this post.", dict(face=(548, 995))),
+ (1, 156.06, 159.75, 1.35, "Share and save this post for your benefit in the future.", dict(face=(548, 995))),
 ]
